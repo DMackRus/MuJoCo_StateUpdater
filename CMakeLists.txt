@@ -15,12 +15,12 @@ else()
     message(STATUS "could not find eigen library")
 endif (TARGET Eigen3::Eigen)
 
-set(Mujoco_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include/MuJoCo_realRobot_ROS/MuJoCo)
+set(Mujoco_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include/MuJoCo)
 
-find_library(GLFW libglfw.so.3 HINTS ${CMAKE_CURRENT_SOURCE_DIR}/include/MuJoCo_realRobot_ROS/MuJoCo/)
+find_library(GLFW libglfw.so.3 HINTS ${CMAKE_CURRENT_SOURCE_DIR}/include/MuJoCo/)
 message(STATUS "GLFW lib found at: " ${GLFW})
 
-file(GLOB LIB_MUJOCO ${CMAKE_CURRENT_SOURCE_DIR}/include/MuJoCo_realRobot_ROS/MuJoCo/libmujoco210.so)
+file(GLOB LIB_MUJOCO ${CMAKE_CURRENT_SOURCE_DIR}/include/MuJoCo/libmujoco.so)
 message(STATUS "MuJoCo lib found at: " ${LIB_MUJOCO})
 
 message(STATUS "Mujoco include directory: " ${Mujoco_INCLUDE_DIRS})
