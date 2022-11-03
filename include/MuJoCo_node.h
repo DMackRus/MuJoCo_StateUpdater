@@ -21,27 +21,27 @@ using namespace std;
 
 class MuJoCo_realRobot_ROS{
     public:
+        // Constructor
         MuJoCo_realRobot_ROS(bool _visualise, ros::NodeHandle *n);
 
+        // ROS subscribers
         ros::Subscriber jointStates_sub;
-
         void jointStates_callback(const sensor_msgs::JointState &msg);
 
+        // Visualisation functions + variables
         bool visualise;
-
         void render();
-        
+
+        void cloneMjData(mjData* data);
+        mjModel* model;
+        mjData* mdata_real;
 
     private:
 
         void setupMujocoWorld();
         void updateMujocoData();
+
+
         float jointVals[7];
         
-
-        // void scroll(GLFWwindow* window, double xoffset, double yoffset);
-        // void mouse_move(GLFWwindow* window, double xpos, double ypos);
-        // void mouse_button(GLFWwindow* window, int button, int act, int mods);
-        // void keyboard(GLFWwindow* window, int key, int scancode, int act, int mods);
-
 };

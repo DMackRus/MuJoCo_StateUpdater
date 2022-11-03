@@ -1,78 +1,35 @@
 #include "MuJoCo_node.h"
 
-
-
-mjModel* model;
-mjData* mdata_real;
-mjvCamera cam;                   // abstract camera
-mjvScene scn;                   // abstract scene
-mjvOption opt;			        // visualization options
-mjrContext con;				    // custom GPU context
-GLFWwindow *window;              // GLFW window
+// -----------------------------------------------------------------------------------------
+// Keyboard + mouse callbacks + variables
+void scroll(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_move(GLFWwindow* window, double xpos, double ypos);
+void mouse_button(GLFWwindow* window, int button, int act, int mods);
+void keyboard(GLFWwindow* window, int key, int scancode, int act, int mods);
 
 bool button_left = false;
 bool button_middle = false;
 bool button_right = false;
 double lastx = 0;
 double lasty = 0;
+// ------------------------------------------------------------------------------------------
 
-void scroll(GLFWwindow* window, double xoffset, double yoffset);
-void mouse_move(GLFWwindow* window, double xpos, double ypos);
-void mouse_button(GLFWwindow* window, int button, int act, int mods);
-void keyboard(GLFWwindow* window, int key, int scancode, int act, int mods);
+// ----------------------------------------------------------------------
+// MuJoCo Visualisation variables
+mjvCamera cam;                   // abstract camera
+mjvScene scn;                   // abstract scene
+mjvOption opt;			        // visualization options
+mjrContext con;				    // custom GPU context
+GLFWwindow *window;              // GLFW window
+// ----------------------------------------------------------------------
+
+
+MuJoCo_realRobot_ROS* mujocoController;
 
 // keyboard callback
 void keyboard(GLFWwindow* window, int key, int scancode, int act, int mods){
-    // backspace: reset simulation
-//    if (act == GLFW_PRESS && key == GLFW_KEY_BACKSPACE)
-//    {
-//        mj_resetData(model, mdata);
-//        mj_forward(model, mdata);
-//    }
-//
-//    float ctrlChange = 0.02;
-//    if(key == 265 && act == GLFW_PRESS ){
-//        // forwards arrow
-//        mdata->ctrl[0] += ctrlChange;
-//    }
-//    else if(key == 263 && act == GLFW_PRESS ){
-//        // back arrow
-//        mdata->ctrl[0] -= ctrlChange;
-//    }
-//    else if(key == 264 && act == GLFW_PRESS ){
-//        // left arrow
-//        mdata->ctrl[1] += ctrlChange;
-//    }
-//    else if(key == 262 && act == GLFW_PRESS ){
-//        // right arrow
-//        mdata->ctrl[1] -= ctrlChange;
-//    }
-//    else if(key == 257 && act == GLFW_PRESS ){
-//        //enter key
-//        m_state collState;
-//        //collState = modelTranslator->returnState(mdata);
-//        //collState(0) += 0.00001;
-//        collState << 0, 0, 0.02, 0, 0, 0, 0, 0;
-//
-//        modelTranslator->setState(mdata, collState);
-//        mj_forward(model, mdata);
-//        m_dof accels;
-//        accels = modelTranslator->returnAccelerations(mdata);
-//        cout << "accelerations: " << endl << accels << endl;
-//        mju_copy(mdata->qacc_warmstart, mdata->qacc, model->nv);
-//        for( int rep=1; rep<5; rep++ ){
-//            mju_copy(mdata->qacc_warmstart, mdata->qacc, model->nv);
-//            mj_forward(model, mdata);
-//            //mj_forwardSkip(model, mdata, mjSTAGE_VEL, 1);
-//            accels = modelTranslator->returnAccelerations(mdata);
-//            cout << "accelerations: " << endl << accels << endl;
-//
-//        }
-//
-//    }
 
 }
-
 
 // mouse button callback
 void mouse_button(GLFWwindow* window, int button, int act, int mods){
@@ -116,15 +73,14 @@ void mouse_move(GLFWwindow* window, double xpos, double ypos){
         action = mjMOUSE_ZOOM;
 
     // move camera
-    mjv_moveCamera(model, action, dx / height, dy / height, &scn, &cam);
+    mjv_moveCamera(mujocoController->model, action, dx / height, dy / height, &scn, &cam);
 
 }
-
 
 // scroll callback
 void scroll(GLFWwindow* window, double xoffset, double yoffset){
     // emulate vertical mouse motion = 5% of window height
-    mjv_moveCamera(model, mjMOUSE_ZOOM, 0, -0.05 * yoffset, &scn, &cam);
+    mjv_moveCamera(mujocoController->model, mjMOUSE_ZOOM, 0, -0.05 * yoffset, &scn, &cam);
 }
 
 void windowCloseCallback(GLFWwindow * /*window*/) {
@@ -134,13 +90,14 @@ void windowCloseCallback(GLFWwindow * /*window*/) {
     mjr_freeContext(&con);
 
     // free MuJoCo model and data, deactivate
-    mj_deleteData(mdata_real);
-    mj_deleteModel(model);
+    mj_deleteData(mujocoController->mdata_real);
+    mj_deleteModel(mujocoController->model);
     mj_deactivate();
 }
 
 
 MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(bool _visualise, ros::NodeHandle *n){
+    std::cout << "Hello, world!" << std::endl;
     jointStates_sub = n->subscribe("joint_states", 10, &MuJoCo_realRobot_ROS::jointStates_callback, this); 
 
     visualise = _visualise;
@@ -153,18 +110,7 @@ void MuJoCo_realRobot_ROS::jointStates_callback(const sensor_msgs::JointState &m
     
     // TODO - make this programatic
     for(int i = 0; i < NUM_JOINTS; i++){
-        // TODO - think how to fix this or make it less epcific, mujoco model does not match
-        // values returned by franka emika arm
         jointVals[i] = msg.position[i];
-        // if(i == 5){
-        //     jointVals[i] = msg.position[i] - (PI / 2);
-        // }
-        // else if(i == 6){
-        //     jointVals[i] = msg.position[i] - (PI / 4);
-        // }
-        // else{
-        //     jointVals[i] = msg.position[i];
-        // }
     }
 }
 
@@ -173,9 +119,9 @@ void MuJoCo_realRobot_ROS::setupMujocoWorld(){
 
     // TODO - fix this hard coded path issue
     // model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/reaching.xml", NULL, error, 1000);
-    model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/new/franka_emika_panda/scene.xml", NULL, error, 1000);
+    model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/franka_emika_panda/scene.xml", NULL, error, 1000);
 
-    if( !model ) {
+    if(!model) {
         printf("%s\n", error);
     }
 
@@ -207,7 +153,6 @@ void MuJoCo_realRobot_ROS::setupMujocoWorld(){
     mjv_makeScene(model, &scn, 2000);
     mjr_makeContext(model, &con, mjFONTSCALE_150);
 
-
     // install GLFW mouse and keyboard callbacks
     glfwSetKeyCallback(window, keyboard);
     glfwSetCursorPosCallback(window, mouse_move);
@@ -230,15 +175,6 @@ void MuJoCo_realRobot_ROS::updateMujocoData(){
 }
 
 void MuJoCo_realRobot_ROS::render(){
-
-    // advance interactive simulation for 1/60 sec
-    //  Assuming MuJoCo can simulate faster than real-time, which it usually can,
-    //  this loop will finish on time for the next frame to be rendered at 60 fps.
-    //  Otherwise add a cpu timer and exit this loop when it is time to render.
-    // mjtNum simstart = mdata_real->time;
-    // while (mdata_real->time - simstart < 1.0 / 60.0){
-    //     mj_step(model, mdata_real);
-    // }
 
     updateMujocoData();
 
@@ -264,13 +200,14 @@ int main(int argc, char **argv){
     std::cout << "Hello, world!" << std::endl;
 
     // Create an instance of 
-    MuJoCo_realRobot_ROS mujocoController(true, &n);
+    // MuJoCo_realRobot_ROS mujocoController(true, &n);
+    mujocoController = new MuJoCo_realRobot_ROS(true, &n);
 
-    mj_step(model, mdata_real);
+    //mj_step(model, mdata_real);
 
     while(ros::ok()){
-        if(mujocoController.visualise){
-            mujocoController.render();
+        if(mujocoController->visualise){
+            mujocoController->render();
 
             ros::spinOnce();
         }
