@@ -155,15 +155,16 @@ void MuJoCo_realRobot_ROS::jointStates_callback(const sensor_msgs::JointState &m
     for(int i = 0; i < NUM_JOINTS; i++){
         // TODO - think how to fix this or make it less epcific, mujoco model does not match
         // values returned by franka emika arm
-        if(i == 5){
-            jointVals[i] = msg.position[i] - (PI / 2);
-        }
-        else if(i == 6){
-            jointVals[i] = msg.position[i] - (PI / 4);
-        }
-        else{
-            jointVals[i] = msg.position[i];
-        }
+        jointVals[i] = msg.position[i];
+        // if(i == 5){
+        //     jointVals[i] = msg.position[i] - (PI / 2);
+        // }
+        // else if(i == 6){
+        //     jointVals[i] = msg.position[i] - (PI / 4);
+        // }
+        // else{
+        //     jointVals[i] = msg.position[i];
+        // }
     }
 }
 
@@ -171,7 +172,8 @@ void MuJoCo_realRobot_ROS::setupMujocoWorld(){
     char error[1000];
 
     // TODO - fix this hard coded path issue
-    model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/reaching.xml", NULL, error, 1000);
+    // model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/reaching.xml", NULL, error, 1000);
+    model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/new/franka_emika_panda/scene.xml", NULL, error, 1000);
 
     if( !model ) {
         printf("%s\n", error);
