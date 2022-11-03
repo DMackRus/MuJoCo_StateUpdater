@@ -41,7 +41,14 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  sensor_msgs
+  message_generation
 )
+
+# generate_messages(
+#    DEPENDENCIES
+#    sensor_msgs
+# )
 
 find_package(Franka 0.9.0 QUIET)
 if(NOT Franka_FOUND)
@@ -95,7 +102,7 @@ endif()
 #   Action1.action
 #   Action2.action
 # )
-MuJoCo_node
+
 ## To declare and build dynamic reconfigure parameters within this
 ## package, follow these steps:
 ## * In the file package.xml:
@@ -127,6 +134,7 @@ catkin_package(
   CATKIN_DEPENDS roscpp 
                  rospy 
                  std_msgs
+                 sensor_msgs
   DEPENDS Franka
 )
 
