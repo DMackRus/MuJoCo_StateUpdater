@@ -22,24 +22,20 @@ using namespace std;
 class MuJoCo_realRobot_ROS{
     public:
         // Constructor
-        MuJoCo_realRobot_ROS(bool _visualise, ros::NodeHandle *n);
+        MuJoCo_realRobot_ROS(int argc, char **argv);
 
         // ROS subscribers
         ros::Subscriber jointStates_sub;
         void jointStates_callback(const sensor_msgs::JointState &msg);
 
-        // Visualisation functions + variables
-        bool visualise;
-        void render();
-
-        void cloneMjData(mjData* data);
-        mjModel* model;
-        mjData* mdata_real;
+        // Updates Mujoco data
+        void updateMujocoData(mjModel* m, mjData* d);
 
     private:
 
-        void setupMujocoWorld();
-        void updateMujocoData();
+        
+        void updateRobotState(mjModel* m, mjData* d);
+        void updateScene(mjModel* m, mjData* d);
 
 
         float jointVals[7];

@@ -142,27 +142,28 @@ catkin_package(
 ## Build ##
 ###########
 
-add_executable(MuJoCo_node
+add_executable(MuJoCo_realRobot_Vis
+  src/demo_vis.cpp
   src/MuJoCo_node.cpp
 )
 
-add_dependencies(MuJoCo_node
+add_dependencies(MuJoCo_realRobot_Vis
   ${catkin_EXPORTED_TARGETS}
 )
 
-target_link_libraries(MuJoCo_node
+target_link_libraries(MuJoCo_realRobot_Vis
   ${Franka_LIBRARIES}
   ${catkin_LIBRARIES}
 )
 
-target_link_libraries(MuJoCo_node Eigen3::Eigen ${LIB_MUJOCO} ${GLFW} libGL.so libglew.so GL)
+target_link_libraries(MuJoCo_realRobot_Vis Eigen3::Eigen ${LIB_MUJOCO} ${GLFW} libGL.so libglew.so GL)
 
-target_include_directories(MuJoCo_node SYSTEM PUBLIC
+target_include_directories(MuJoCo_realRobot_Vis SYSTEM PUBLIC
   ${Franka_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
-target_include_directories(MuJoCo_node PUBLIC
+target_include_directories(MuJoCo_realRobot_Vis PUBLIC
   include
 )
 
