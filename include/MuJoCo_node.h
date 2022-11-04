@@ -5,24 +5,41 @@
 #include <string>
 #include <iostream>
 #include <thread>
+#include <vector>
 
 // ROS includes
 #include "ros/ros.h"
 #include <sensor_msgs/JointState.h>
+#include <tf/transform_listener.h>
 
 // MuJoCo Simulator
 #include "mujoco.h"
 #include "glfw3.h"
 
-using namespace std;
+#include <Eigen/Dense>
+
+
+using namespace Eigen;
+
+typedef Eigen::Matrix<double, 3, 1> m_point;
+typedef Eigen::Matrix<double, 4, 1> m_quat;
+typedef Eigen::Matrix<double, 6, 1> m_pose;
+
+
 
 #define NUM_JOINTS  7
 #define PI          3.14159265359
 
+struct objectTracking{
+    std::string parent_id;
+    std::string target_id;
+    std::string mujoco_name;
+};
+
 class MuJoCo_realRobot_ROS{
     public:
         // Constructor
-        MuJoCo_realRobot_ROS(int argc, char **argv);
+        MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfObjects);
 
         // ROS subscribers
         ros::Subscriber jointStates_sub;
@@ -33,10 +50,23 @@ class MuJoCo_realRobot_ROS{
 
     private:
 
-        
+        int numberOfObjects;
+        objectTracking myObject;
+
+        std::vector<objectTracking> objectTrackingList;
+
+        tf::TransformListener listener;
+
+        // Updates the joint states of the robot
         void updateRobotState(mjModel* m, mjData* d);
+
+        // Loops through all known objects in the scene and updates their position and rotation
         void updateScene(mjModel* m, mjData* d);
 
+        // Sets the qpos value for the corresponding body id to the specified value
+        void set_BodyPosition(mjModel *m, mjData* d, int bodyId, m_point pos);
+        void set_qPosVal(mjModel *m, mjData *d, int bodyId, bool freeJoint, int freeJntAxis, double val);
+        void setBodyQuat(mjModel *m, mjData *d, int bodyId, Quaternionf q);
 
         float jointVals[7];
         

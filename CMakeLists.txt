@@ -42,6 +42,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   sensor_msgs
+  tf
   message_generation
 )
 
@@ -135,6 +136,7 @@ catkin_package(
                  rospy 
                  std_msgs
                  sensor_msgs
+                 tf
   DEPENDS Franka
 )
 

@@ -27,6 +27,8 @@ GLFWwindow *window;              // GLFW window
 mjModel *model;
 mjData* mdata_real;
 
+int frameCounter = 0;
+
 MuJoCo_realRobot_ROS* mujocoController;
 
 void setupMujocoWorld(){
@@ -34,9 +36,11 @@ void setupMujocoWorld(){
 
     // TODO - fix this hard coded path issue
     // model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/reaching.xml", NULL, error, 1000);
-    model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/franka_emika_panda/scene.xml", NULL, error, 1000);
+    model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/franka_emika_panda/pushing_scene.xml", NULL, error, 1000);
+    // model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/old/object_pushing.xml", NULL, error, 1000);
 
     if(!model) {
+        std::cout << "model xml Error" << std::endl;
         printf("%s\n", error);
     }
 
@@ -79,7 +83,12 @@ void setupMujocoWorld(){
 
 void render(){
 
-    mujocoController->updateMujocoData(model, mdata_real);
+    frameCounter--;
+    if(frameCounter <= 0){
+        mujocoController->updateMujocoData(model, mdata_real);
+        //frameCounter = 100;
+    }
+    
 
     // get framebuffer viewport
     mjrRect viewport = { 0, 0, 0, 0 };
@@ -99,11 +108,13 @@ void render(){
 int main(int argc, char **argv){
     std::cout << "Hello, world!" << std::endl;
 
+    ros::init(argc, argv, "MuJoCo_node");
+
     setupMujocoWorld();
 
     // Create an instance of 
     // MuJoCo_realRobot_ROS mujocoController(true, &n);
-    mujocoController = new MuJoCo_realRobot_ROS(argc, argv);
+    mujocoController = new MuJoCo_realRobot_ROS(argc, argv, 2);
 
     //mj_step(model, mdata_real);
 
