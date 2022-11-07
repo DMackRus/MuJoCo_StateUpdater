@@ -1,10 +1,13 @@
 #include "MuJoCo_node.h"
 
 MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfObjects){
-    //ros::init(argc, argv, "MuJoCo_node");
-    ros::NodeHandle n;
 
-    jointStates_sub = n.subscribe("joint_states", 10, &MuJoCo_realRobot_ROS::jointStates_callback, this); 
+    ros::init(argc, argv, "MuJoCo_node");
+
+    n = new ros::NodeHandle();
+    listener = new tf::TransformListener();
+
+    jointStates_sub = n->subscribe("joint_states", 10, &MuJoCo_realRobot_ROS::jointStates_callback, this); 
 
     numberOfObjects = _numberOfObjects;
 
@@ -22,6 +25,11 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfO
 
 }
 
+MuJoCo_realRobot_ROS::~MuJoCo_realRobot_ROS(){
+    delete n;
+    delete listener;
+}
+
 void MuJoCo_realRobot_ROS::jointStates_callback(const sensor_msgs::JointState &msg){
     
     // TODO - make this programatic
@@ -32,6 +40,8 @@ void MuJoCo_realRobot_ROS::jointStates_callback(const sensor_msgs::JointState &m
 
 void MuJoCo_realRobot_ROS::updateMujocoData(mjModel* m, mjData* d){
 
+    ros::spinOnce();
+
     updateRobotState(m, d);
 
     updateScene(m, d);
@@ -41,6 +51,7 @@ void MuJoCo_realRobot_ROS::updateMujocoData(mjModel* m, mjData* d){
 
 void MuJoCo_realRobot_ROS::updateRobotState(mjModel* m, mjData* d){
     for(int i = 0; i < NUM_JOINTS; i++){
+        
         d->qpos[i] = jointVals[i];
     }
 }
@@ -52,7 +63,7 @@ void MuJoCo_realRobot_ROS::updateScene(mjModel* m, mjData* d){
     for(int i = 0; i < numberOfObjects; i++){
 
         try{
-            listener.lookupTransform(objectTrackingList[i].parent_id, objectTrackingList[i].target_id, ros::Time(0), transform);
+            listener->lookupTransform(objectTrackingList[i].parent_id, objectTrackingList[i].target_id, ros::Time(0), transform);
 
             int cheezit_id = mj_name2id(m, mjOBJ_BODY, objectTrackingList[i].mujoco_name.c_str());
 
@@ -74,9 +85,26 @@ void MuJoCo_realRobot_ROS::updateScene(mjModel* m, mjData* d){
         catch (tf::TransformException ex){
             std::cout << " no ar marker 3 found" << std::endl;
             ROS_ERROR("%s",ex.what());
-            ros::Duration(1.0).sleep();
         }
     }
+}
+
+m_pose_quat filterObjectHistory(std::vector<m_pose_quat> objectPoses){
+    m_pose_quat filteredPose;
+
+    // filteredPose = objectPoses[0];
+
+    // for(int i = 0; i < NUM_POSES_HISTORY - 1; i++){
+    //     for(int j = 0; j < 7; j++){
+    //         filteredPose[i](j) += objectPoses[i](j);
+    //     }
+    // }
+
+    // for(int j = 0; j < 7; j++){
+    //     filteredPose[i](j) /= NUM_POSES_HISTORY;
+    // }
+
+    return filteredPose;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

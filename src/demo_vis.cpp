@@ -27,9 +27,7 @@ GLFWwindow *window;              // GLFW window
 mjModel *model;
 mjData* mdata_real;
 
-int frameCounter = 0;
-
-MuJoCo_realRobot_ROS* mujocoController;
+MuJoCo_realRobot_ROS* mujoco_realRobot_ROS;
 
 void setupMujocoWorld(){
     char error[1000];
@@ -83,12 +81,7 @@ void setupMujocoWorld(){
 
 void render(){
 
-    frameCounter--;
-    if(frameCounter <= 0){
-        mujocoController->updateMujocoData(model, mdata_real);
-        //frameCounter = 100;
-    }
-    
+    mujoco_realRobot_ROS->updateMujocoData(model, mdata_real);
 
     // get framebuffer viewport
     mjrRect viewport = { 0, 0, 0, 0 };
@@ -108,20 +101,16 @@ void render(){
 int main(int argc, char **argv){
     std::cout << "Hello, world!" << std::endl;
 
-    ros::init(argc, argv, "MuJoCo_node");
+    //ros::init(argc, argv, "MuJoCo_node");
 
     setupMujocoWorld();
 
     // Create an instance of 
     // MuJoCo_realRobot_ROS mujocoController(true, &n);
-    mujocoController = new MuJoCo_realRobot_ROS(argc, argv, 2);
-
-    //mj_step(model, mdata_real);
+    mujoco_realRobot_ROS = new MuJoCo_realRobot_ROS(argc, argv, 2);
 
     while(ros::ok()){
         render();
-
-        ros::spinOnce();
     }
 
     return 0;
