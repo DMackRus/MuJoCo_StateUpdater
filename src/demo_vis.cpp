@@ -33,9 +33,7 @@ void setupMujocoWorld(){
     char error[1000];
 
     // TODO - fix this hard coded path issue
-    // model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/reaching.xml", NULL, error, 1000);
-    model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/franka_emika_panda/pushing_scene.xml", NULL, error, 1000);
-    // model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/old/object_pushing.xml", NULL, error, 1000);
+    model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/franka_emika_panda/reaching_scene.xml", NULL, error, 1000);
 
     if(!model) {
         std::cout << "model xml Error" << std::endl;
@@ -101,15 +99,25 @@ void render(){
 int main(int argc, char **argv){
     std::cout << "Hello, world!" << std::endl;
 
-    //ros::init(argc, argv, "MuJoCo_node");
-
     setupMujocoWorld();
 
     // Create an instance of 
     // MuJoCo_realRobot_ROS mujocoController(true, &n);
     mujoco_realRobot_ROS = new MuJoCo_realRobot_ROS(argc, argv, 2);
 
+    int counter = 0;
+
+    mujoco_realRobot_ROS->switchController("effort_group_effort_controller");
+
     while(ros::ok()){
+
+        counter++;
+
+        if(counter < 10000){
+            double torques[7] = {0.0, 0.0, 0.0, 0.0, 0.0, 1, 0.0};
+            mujoco_realRobot_ROS->sendTorquesToRealRobot(torques);
+        }
+
         render();
     }
 

@@ -11,6 +11,10 @@
 #include "ros/ros.h"
 #include <sensor_msgs/JointState.h>
 #include <tf/transform_listener.h>
+#include "std_msgs/Float64MultiArray.h"
+// Controller includes work stragith away when including ROS, nothing needed extra in the cmake
+#include "controller_manager_msgs/SwitchController.h"
+#include "controller_manager_msgs/LoadController.h"
 
 // MuJoCo Simulator
 #include "mujoco.h"
@@ -49,6 +53,9 @@ class MuJoCo_realRobot_ROS{
         // Updates Mujoco data
         void updateMujocoData(mjModel* m, mjData* d);
 
+        bool switchController(std::string controllerName);
+        void sendTorquesToRealRobot(double torques[]);
+
     private:
 
         int numberOfObjects;
@@ -58,12 +65,14 @@ class MuJoCo_realRobot_ROS{
 
         ros::NodeHandle *n;
         tf::TransformListener *listener;
+        ros::Publisher *torque_pub;
 
         std::vector<m_pose_quat> objectPoses;
 
+        std::string currentController;
+
         // Updates the joint states of the robot
         void updateRobotState(mjModel* m, mjData* d);
-
         // Loops through all known objects in the scene and updates their position and rotation
         void updateScene(mjModel* m, mjData* d);
         void updateObjectHistory();

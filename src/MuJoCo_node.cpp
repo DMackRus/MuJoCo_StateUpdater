@@ -9,6 +9,8 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfO
 
     jointStates_sub = n->subscribe("joint_states", 10, &MuJoCo_realRobot_ROS::jointStates_callback, this); 
 
+    torque_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_group_effort_controller/command", 10));
+
     numberOfObjects = _numberOfObjects;
 
     for(int i = 0; i < numberOfObjects; i++){
@@ -22,6 +24,9 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfO
     objectTrackingList[1].parent_id = "/panda_link0";
     objectTrackingList[1].target_id = "/panda_hand_tcp";
     objectTrackingList[1].mujoco_name = "EE";
+
+    // TODO - when class is instantied, have it check what controllers are running and keep track of it
+    currentController = "position_joint_trajectory_controller";
 
 }
 
@@ -44,7 +49,7 @@ void MuJoCo_realRobot_ROS::updateMujocoData(mjModel* m, mjData* d){
 
     updateRobotState(m, d);
 
-    updateScene(m, d);
+    // updateScene(m, d);
 
     mj_forward(m, d);
 }
@@ -105,6 +110,59 @@ m_pose_quat filterObjectHistory(std::vector<m_pose_quat> objectPoses){
     // }
 
     return filteredPose;
+}
+
+// TODO - check loaded controllers, only load controller if required.
+bool MuJoCo_realRobot_ROS::switchController(std::string controllerName){
+    ros::ServiceClient load_controller = n->serviceClient<controller_manager_msgs::LoadController>("/controller_manager/load_controller");
+
+    controller_manager_msgs::LoadController load_controller_req;
+    load_controller_req.request.name = controllerName;
+    load_controller.call(load_controller_req);
+
+    ros::ServiceClient switch_controller = n->serviceClient<controller_manager_msgs::SwitchController>("/controller_manager/switch_controller");
+
+    std::vector<std::string> start_controller;
+    start_controller.push_back(controllerName);
+    std::vector<std::string> stop_controller;
+    stop_controller.push_back("position_joint_trajectory_controller");
+    controller_manager_msgs::SwitchController switch_controller_req;
+    switch_controller_req.request.start_controllers = start_controller;
+    switch_controller_req.request.stop_controllers = stop_controller;
+    switch_controller_req.request.strictness = 1;
+    switch_controller_req.request.start_asap = false;
+    ros::service::waitForService("/controller_manager/switch_controller", ros::Duration(5));
+    switch_controller.call(switch_controller_req);
+    if (switch_controller_req.response.ok){
+        ROS_INFO_STREAM("Controller switch correctly");
+    }
+    else{
+        ROS_ERROR_STREAM("Error occured trying to switch controller");
+        return 0;
+    }
+
+    return switch_controller_req.response.ok;
+}
+
+void MuJoCo_realRobot_ROS::sendTorquesToRealRobot(double torques[]){
+    std_msgs::Float64MultiArray  desired_torques;
+    double safetyTorques[NUM_JOINTS] = {5, 5, 5, 5, 2, 2, 2};
+
+    for(int i = 0; i < NUM_JOINTS; i++){
+        double safeTorque = torques[i];
+
+        if(safeTorque > safetyTorques[i]){
+            safeTorque = safetyTorques[i];
+        }
+
+        if(safeTorque < -safetyTorques[i]){
+            safeTorque = -safetyTorques[i];
+        }
+
+        desired_torques.data.push_back(safeTorque);
+    }
+
+    torque_pub->publish(desired_torques);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
