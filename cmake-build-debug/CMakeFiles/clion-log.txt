@@ -1,0 +1,8 @@
+/home/davidrussell/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/222.4345.21/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/home/davidrussell/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/222.4345.21/bin/ninja/linux/ninja -G Ninja -S /home/davidrussell/Singularities/PandaPlanning/home/catkin_ws/src/MuJoCo_realRobot_ROS -B /home/davidrussell/Singularities/PandaPlanning/home/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug
+-- Eigen library found
+-- GLFW lib found at: /home/davidrussell/Singularities/PandaPlanning/home/catkin_ws/src/MuJoCo_realRobot_ROS/include/MuJoCo/libglfw.so.3
+-- MuJoCo lib found at: /home/davidrussell/Singularities/PandaPlanning/home/catkin_ws/src/MuJoCo_realRobot_ROS/include/MuJoCo/libmujoco.so
+-- Mujoco include directory: /home/davidrussell/Singularities/PandaPlanning/home/catkin_ws/src/MuJoCo_realRobot_ROS/include/MuJoCo
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/davidrussell/Singularities/PandaPlanning/home/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug

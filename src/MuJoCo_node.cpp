@@ -8,8 +8,9 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfO
     listener = new tf::TransformListener();
 
     jointStates_sub = n->subscribe("joint_states", 10, &MuJoCo_realRobot_ROS::jointStates_callback, this); 
+    frankaStates_sub = n->subscribe("/franka_state_controller/franka_states", 10, &MuJoCo_realRobot_ROS::frankaStates_callback, this);
 
-    torque_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_group_effort_controller/command", 10));
+    torque_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_group_effort_controller/command", 1));
 
     numberOfObjects = _numberOfObjects;
 
@@ -17,16 +18,18 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfO
         objectTrackingList.push_back(objectTracking());
     }
 
-    objectTrackingList[0].parent_id = "/panda_link0";
-    objectTrackingList[0].target_id = "/ar_marker_3";
-    objectTrackingList[0].mujoco_name = "cheezit";
+    // objectTrackingList[0].parent_id = "/panda_link0";
+    // objectTrackingList[0].target_id = "/ar_marker_3";
+    // objectTrackingList[0].mujoco_name = "cheezit";
 
-    objectTrackingList[1].parent_id = "/panda_link0";
-    objectTrackingList[1].target_id = "/panda_hand_tcp";
-    objectTrackingList[1].mujoco_name = "EE";
+    // objectTrackingList[1].parent_id = "/panda_link0";
+    // objectTrackingList[1].target_id = "/panda_hand_tcp";
+    // objectTrackingList[1].mujoco_name = "EE";
 
     // TODO - when class is instantied, have it check what controllers are running and keep track of it
     currentController = "position_joint_trajectory_controller";
+
+    firstCallbackCalled = false;
 
 }
 
@@ -40,6 +43,15 @@ void MuJoCo_realRobot_ROS::jointStates_callback(const sensor_msgs::JointState &m
     // TODO - make this programatic
     for(int i = 0; i < NUM_JOINTS; i++){
         jointVals[i] = msg.position[i];
+    }
+
+    firstCallbackCalled = true;
+}
+
+void MuJoCo_realRobot_ROS::frankaStates_callback(const franka_msgs::FrankaState &msg){
+
+    for(int i = 0; i < NUM_JOINTS; i++){
+        jointSpeeds[i] = msg.dq[i];
     }
 }
 
@@ -56,8 +68,15 @@ void MuJoCo_realRobot_ROS::updateMujocoData(mjModel* m, mjData* d){
 
 void MuJoCo_realRobot_ROS::updateRobotState(mjModel* m, mjData* d){
     for(int i = 0; i < NUM_JOINTS; i++){
-        
-        d->qpos[i] = jointVals[i];
+        if(i == 5){
+            d->qpos[i] = jointVals[i] - PI/2;
+        }
+        else if(i == 6){
+            d->qpos[i] = jointVals[i] - PI/4;
+        }
+        else{
+            d->qpos[i] = jointVals[i];
+        }
     }
 }
 
@@ -146,24 +165,44 @@ bool MuJoCo_realRobot_ROS::switchController(std::string controllerName){
 
 void MuJoCo_realRobot_ROS::sendTorquesToRealRobot(double torques[]){
     std_msgs::Float64MultiArray  desired_torques;
-    double safetyTorques[NUM_JOINTS] = {5, 5, 5, 5, 2, 2, 2};
+    double jointSpeedLimits[NUM_JOINTS] = {0.5, 0.5, 0.5, 0.5, 1, 1, 1};
+    bool jointVelsSafe = true;
 
-    for(int i = 0; i < NUM_JOINTS; i++){
-        double safeTorque = torques[i];
+    if(!haltRobot){
+        std::cout << "torques Sent: " << torques[0] << ", " << torques[1] << ", " << torques[2] << ", " << torques[3] << ", " << torques[4] << ", " << torques[5] << ", " << torques[6] << ", " << std::endl;
+        for(int i = 0; i < NUM_JOINTS; i++){
+            double safeTorque = torques[i];
 
-        if(safeTorque > safetyTorques[i]){
-            safeTorque = safetyTorques[i];
+            if(jointSpeeds[i] > jointSpeedLimits[i]){
+                std::cout << "joint " << i <<  " speed: " << jointSpeeds[i] << std::endl;
+                std::cout << "safety vel triggered" << std::endl;
+                haltRobot = true;
+                safeTorque = 0.0;
+            }
+
+            if(jointSpeeds[i] < -jointSpeedLimits[i]){
+                std::cout << "joint " << i <<  " speed: " << jointSpeeds[i] << std::endl;
+                std::cout << "safety vel triggered" << std::endl;
+                haltRobot = true;
+                safeTorque = 0.0;
+            }
+
+            desired_torques.data.push_back(safeTorque);
         }
 
-        if(safeTorque < -safetyTorques[i]){
-            safeTorque = -safetyTorques[i];
-        }
-
-        desired_torques.data.push_back(safeTorque);
+        torque_pub->publish(desired_torques);
     }
-
-    torque_pub->publish(desired_torques);
+    else{
+        for(int i = 0; i < NUM_JOINTS; i++){
+            desired_torques.data.push_back(0.0);
+        }
+        torque_pub->publish(desired_torques);
+    }
 }
+
+// void MuJoCo_realRobot_ROS::resetTorqueControl(){
+//     haltRobot = false;
+// }
 
 //----------------------------------------------------------------------------------------------------------------------
 //

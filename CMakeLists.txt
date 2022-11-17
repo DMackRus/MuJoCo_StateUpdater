@@ -38,12 +38,12 @@ link_directories(${Mujoco_INCLUDE_DIRS})
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  std_msgs
-  sensor_msgs
-  tf
-  message_generation
+ roscpp
+ rospy
+ std_msgs
+ sensor_msgs
+ tf
+ message_generation
 )
 
 # generate_messages(
@@ -53,7 +53,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Franka 0.9.0 QUIET)
 if(NOT Franka_FOUND)
-  find_package(Franka 0.8.0 REQUIRED)
+ find_package(Franka 0.8.0 REQUIRED)
 endif()
 
 ## System dependencies are found with CMake's conventions
@@ -130,19 +130,23 @@ endif()
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
- # LIBRARIES MuJoCo_realRobot_ROS
-  CATKIN_DEPENDS roscpp 
-                 rospy 
-                 std_msgs
-                 sensor_msgs
-                 tf
-  DEPENDS Franka
+ INCLUDE_DIRS include
+# LIBRARIES MuJoCo_realRobot_ROS
+ CATKIN_DEPENDS roscpp
+                rospy
+                std_msgs
+                sensor_msgs
+                tf
+ DEPENDS Franka
 )
 
 ###########
 ## Build ##
 ###########
+
+#######################################################################################################
+##                              DEMO  Visualisation code        
+#######################################################################################################
 
 add_executable(MuJoCo_realRobot_Vis
   src/demo_vis.cpp
@@ -169,12 +173,52 @@ target_include_directories(MuJoCo_realRobot_Vis PUBLIC
   include
 )
 
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
-include_directories(
-# include
+#######################################################################################################
+##                              iLQR Scripts for real robot       
+#######################################################################################################
+
+add_executable(iLQR_MuJoCo_realRobot
+  # src/iLQR/Utility/stdInclude/stdInclude.h
+  src/iLQR/iLQR_optimisation.cpp
+  src/iLQR/Utility/MujocoController/MujocoController.cpp src/iLQR/Utility/MujocoController/MujocoController.h
+  src/iLQR/Utility/MujocoController/MujocoUI.cpp src/iLQR/Utility/MujocoController/MujocoUI.h
+  src/iLQR/modelTranslator/modelTranslator.cpp src/iLQR/modelTranslator/modelTranslator.h
+  src/iLQR/iLQR/iLQR_dataCentric.cpp src/iLQR/iLQR/iLQR_dataCentric.h
+  src/MuJoCo_node.cpp
+)
+
+add_dependencies(iLQR_MuJoCo_realRobot
+ ${catkin_EXPORTED_TARGETS}
+)
+
+target_link_libraries(iLQR_MuJoCo_realRobot
+ ${Franka_LIBRARIES}
+ ${catkin_LIBRARIES}
+)
+
+target_link_libraries(iLQR_MuJoCo_realRobot Eigen3::Eigen ${LIB_MUJOCO} ${GLFW} libGL.so libglew.so GL)
+
+target_include_directories(iLQR_MuJoCo_realRobot SYSTEM PUBLIC
+  ${Franka_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
+
+target_include_directories(iLQR_MuJoCo_realRobot PUBLIC
+ include
+)
+
+
+
+
+
+
+
+## Specify additional locations of header files
+## Your package locations should be listed before other locations
+#include_directories(
+## include
+#  ${catkin_INCLUDE_DIRS}
+#)
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}

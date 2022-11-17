@@ -35,7 +35,7 @@
 		<motor name="panda0_joint7" joint="panda0_joint7" class="panda"  forcerange="-12 12" ctrlrange="-12 12"/> 
 
 		<position name="panda1_leftfinger" joint="panda0_finger_joint1" class="panda" kp="120" forcerange="-20 20" ctrlrange="0 0.04"/> <!-- velocity=".2" -->
-        	<position name="panda1_rightfinger" joint="panda0_finger_joint2" class="panda" kp="120" forcerange="-20 20" ctrlrange="0 0.04"/> <!-- velocity=".2" -->
+        <position name="panda1_rightfinger" joint="panda0_finger_joint2" class="panda" kp="120" forcerange="-20 20" ctrlrange="0 0.04"/> <!-- velocity=".2" -->
 	
     </actuator>
 </mujocoinclude>

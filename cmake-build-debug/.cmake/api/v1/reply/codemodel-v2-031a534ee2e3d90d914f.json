@@ -1,0 +1,60 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.2"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "MuJoCo_realRobot_ROS",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "iLQR_MuJoCo_realRobot::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-iLQR_MuJoCo_realRobot-Debug-8be4bc8f1b22f23a7b6b.json",
+					"name" : "iLQR_MuJoCo_realRobot",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/davidrussell/Singularities/PandaPlanning/home/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug",
+		"source" : "/home/davidrussell/Singularities/PandaPlanning/home/catkin_ws/src/MuJoCo_realRobot_ROS"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 4
+	}
+}

@@ -33,7 +33,8 @@ void setupMujocoWorld(){
     char error[1000];
 
     // TODO - fix this hard coded path issue
-    model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/franka_emika_panda/reaching_scene.xml", NULL, error, 1000);
+    // model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/franka_emika_panda/reaching_scene.xml", NULL, error, 1000);
+    model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/old/reaching.xml", NULL, error, 1000);
 
     if(!model) {
         std::cout << "model xml Error" << std::endl;
@@ -74,7 +75,6 @@ void setupMujocoWorld(){
     glfwSetMouseButtonCallback(window, mouse_button);
     glfwSetScrollCallback(window, scroll);
     glfwSetWindowCloseCallback(window, windowCloseCallback);
-
 }
 
 void render(){
@@ -112,9 +112,8 @@ int main(int argc, char **argv){
     while(ros::ok()){
 
         counter++;
-
-        if(counter < 10000){
-            double torques[7] = {0.0, 0.0, 0.0, 0.0, 0.0, 1, 0.0};
+        if(counter < 200){
+            double torques[7] = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
             mujoco_realRobot_ROS->sendTorquesToRealRobot(torques);
         }
 

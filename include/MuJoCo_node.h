@@ -12,6 +12,7 @@
 #include <sensor_msgs/JointState.h>
 #include <tf/transform_listener.h>
 #include "std_msgs/Float64MultiArray.h"
+#include <franka_msgs/FrankaState.h>
 // Controller includes work stragith away when including ROS, nothing needed extra in the cmake
 #include "controller_manager_msgs/SwitchController.h"
 #include "controller_manager_msgs/LoadController.h"
@@ -50,11 +51,18 @@ class MuJoCo_realRobot_ROS{
         ros::Subscriber jointStates_sub;
         void jointStates_callback(const sensor_msgs::JointState &msg);
 
+        ros::Subscriber frankaStates_sub;
+        void frankaStates_callback(const franka_msgs::FrankaState &msg);
+
         // Updates Mujoco data
         void updateMujocoData(mjModel* m, mjData* d);
 
         bool switchController(std::string controllerName);
         void sendTorquesToRealRobot(double torques[]);
+
+        void resetTorqueControl();
+
+        bool firstCallbackCalled;
 
     private:
 
@@ -83,6 +91,9 @@ class MuJoCo_realRobot_ROS{
         void set_qPosVal(mjModel *m, mjData *d, int bodyId, bool freeJoint, int freeJntAxis, double val);
         void setBodyQuat(mjModel *m, mjData *d, int bodyId, Quaternionf q);
 
-        float jointVals[7];
+        double jointVals[7];
+        double jointSpeeds[7];
+
+        bool haltRobot = false;
         
 };

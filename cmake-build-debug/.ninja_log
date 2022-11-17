@@ -1,0 +1,7 @@
+# ninja log v5
+0	1359	1668425700488237634	CMakeFiles/iLQR_MuJoCo_realRobot.dir/src/iLQR/Utility/MujocoController/MujocoController.cpp.o	3a9ba1dbb9fe9fe1
+0	1680	1668425700812235284	CMakeFiles/iLQR_MuJoCo_realRobot.dir/src/iLQR/Utility/MujocoController/MujocoUI.cpp.o	38401ec3ae9f3271
+0	2161	1668425701288231832	CMakeFiles/iLQR_MuJoCo_realRobot.dir/src/iLQR/iLQR_optimisation.cpp.o	e822e5a50844ac78
+2	2973	1668425702100225942	CMakeFiles/iLQR_MuJoCo_realRobot.dir/src/iLQR/modelTranslator/modelTranslator.cpp.o	b0b7a88dde1c8fbf
+3	11251	1668425710368165972	CMakeFiles/iLQR_MuJoCo_realRobot.dir/src/iLQR/iLQR/iLQR_dataCentric.cpp.o	4e3db3f1451187c7
+11251	11659	1668425710788162925	../iLQR_MuJoCo_realRobot	621a2a4365dad44f
