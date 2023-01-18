@@ -12,8 +12,9 @@
 #include <sensor_msgs/JointState.h>
 #include <tf/transform_listener.h>
 #include "std_msgs/Float64MultiArray.h"
+#include <geometry_msgs/PoseStamped.h>
 #include <franka_msgs/FrankaState.h>
-// Controller includes work stragith away when including ROS, nothing needed extra in the cmake
+// Controller includes work straight away when including ROS, nothing needed extra in the cmake
 #include "controller_manager_msgs/SwitchController.h"
 #include "controller_manager_msgs/LoadController.h"
 
@@ -33,7 +34,8 @@ typedef Eigen::Matrix<double, 7, 1> m_pose_quat;
 
 #define NUM_JOINTS          7
 #define PI                  3.14159265359
-#define NUM_POSES_HISTORY   10             
+#define NUM_POSES_HISTORY   10
+#define OPTITRACK           1
 
 struct objectTracking{
     std::string parent_id;
@@ -47,6 +49,7 @@ class MuJoCo_realRobot_ROS{
         MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfObjects);
         ~MuJoCo_realRobot_ROS();
 
+        // -----------------------------------------------------------------------------------
         // ROS subscribers
         ros::Subscriber jointStates_sub;
         void jointStates_callback(const sensor_msgs::JointState &msg);
@@ -54,11 +57,19 @@ class MuJoCo_realRobot_ROS{
         ros::Subscriber frankaStates_sub;
         void frankaStates_callback(const franka_msgs::FrankaState &msg);
 
+        ros::Subscriber optiTrack_sub;
+        void optiTrack_callback(const geometry_msgs::PoseStamped &msg);
+
+        ros::Subscriber robotBase_sub;
+        void robotBasePose_callback(const geometry_msgs::PoseStamped &msg);
+        // -----------------------------------------------------------------------------------
+
         // Updates Mujoco data
         void updateMujocoData(mjModel* m, mjData* d);
 
         bool switchController(std::string controllerName);
         void sendTorquesToRealRobot(double torques[]);
+        void sendPositionsToRealRobot(double positions[]);
 
         void resetTorqueControl();
 
@@ -67,15 +78,15 @@ class MuJoCo_realRobot_ROS{
     private:
 
         int numberOfObjects;
-        objectTracking myObject;
 
         std::vector<objectTracking> objectTrackingList;
+        std::vector<m_pose_quat> objectPoseList;
+
+        m_pose_quat robotBase;
 
         ros::NodeHandle *n;
         tf::TransformListener *listener;
         ros::Publisher *torque_pub;
-
-        std::vector<m_pose_quat> objectPoses;
 
         std::string currentController;
 

@@ -177,35 +177,34 @@ target_include_directories(MuJoCo_realRobot_Vis PUBLIC
 ##                              iLQR Scripts for real robot       
 #######################################################################################################
 
-add_executable(iLQR_MuJoCo_realRobot
-  # src/iLQR/Utility/stdInclude/stdInclude.h
-  src/iLQR/iLQR_optimisation.cpp
-  src/iLQR/Utility/MujocoController/MujocoController.cpp src/iLQR/Utility/MujocoController/MujocoController.h
-  src/iLQR/Utility/MujocoController/MujocoUI.cpp src/iLQR/Utility/MujocoController/MujocoUI.h
-  src/iLQR/modelTranslator/modelTranslator.cpp src/iLQR/modelTranslator/modelTranslator.h
-  src/iLQR/iLQR/iLQR_dataCentric.cpp src/iLQR/iLQR/iLQR_dataCentric.h
-  src/MuJoCo_node.cpp
-)
+#add_executable(iLQR_MuJoCo_realRobot
+#  # src/iLQR/Utility/stdInclude/stdInclude.h
+#  src/iLQR/Utility/MujocoController/MujocoController.cpp src/iLQR/Utility/MujocoController/MujocoController.h
+#  src/iLQR/Utility/MujocoController/MujocoUI.cpp src/iLQR/Utility/MujocoController/MujocoUI.h
+#  src/iLQR/modelTranslator/modelTranslator.cpp src/iLQR/modelTranslator/modelTranslator.h
+#  src/iLQR/iLQR/iLQR_dataCentric.cpp src/iLQR/iLQR/iLQR_dataCentric.h
+#  src/MuJoCo_node.cpp
+#)
+#
+#add_dependencies(iLQR_MuJoCo_realRobot
+# ${catkin_EXPORTED_TARGETS}
+#)
+#
+#target_link_libraries(iLQR_MuJoCo_realRobot
+# ${Franka_LIBRARIES}
+# ${catkin_LIBRARIES}
+#)
 
-add_dependencies(iLQR_MuJoCo_realRobot
- ${catkin_EXPORTED_TARGETS}
-)
-
-target_link_libraries(iLQR_MuJoCo_realRobot
- ${Franka_LIBRARIES}
- ${catkin_LIBRARIES}
-)
-
-target_link_libraries(iLQR_MuJoCo_realRobot Eigen3::Eigen ${LIB_MUJOCO} ${GLFW} libGL.so libglew.so GL)
-
-target_include_directories(iLQR_MuJoCo_realRobot SYSTEM PUBLIC
-  ${Franka_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
-)
-
-target_include_directories(iLQR_MuJoCo_realRobot PUBLIC
- include
-)
+#target_link_libraries(iLQR_MuJoCo_realRobot Eigen3::Eigen ${LIB_MUJOCO} ${GLFW} libGL.so libglew.so GL)
+#
+#target_include_directories(iLQR_MuJoCo_realRobot SYSTEM PUBLIC
+#  ${Franka_INCLUDE_DIRS}
+#  ${catkin_INCLUDE_DIRS}
+#)
+#
+#target_include_directories(iLQR_MuJoCo_realRobot PUBLIC
+# include
+#)
 
 
 

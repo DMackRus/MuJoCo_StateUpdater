@@ -9,18 +9,27 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfO
 
     jointStates_sub = n->subscribe("joint_states", 10, &MuJoCo_realRobot_ROS::jointStates_callback, this); 
     frankaStates_sub = n->subscribe("/franka_state_controller/franka_states", 10, &MuJoCo_realRobot_ROS::frankaStates_callback, this);
+    optiTrack_sub = n->subscribe("/mocap/rigid_bodies/blue_tin/pose", 10, &MuJoCo_realRobot_ROS::optiTrack_callback, this);
+    robotBase_sub = n->subscribe("/mocap/rigid_bodies/pandaRobot/pose", 10, &MuJoCo_realRobot_ROS::robotBasePose_callback, this);
 
-    torque_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_group_effort_controller/command", 1));
+    torque_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("//effort_group_position_controller/command", 1));
 
     numberOfObjects = _numberOfObjects;
 
     for(int i = 0; i < numberOfObjects; i++){
         objectTrackingList.push_back(objectTracking());
+        objectPoseList.push_back(m_pose_quat());
     }
 
-    // objectTrackingList[0].parent_id = "/panda_link0";
-    // objectTrackingList[0].target_id = "/ar_marker_3";
-    // objectTrackingList[0].mujoco_name = "cheezit";
+     objectTrackingList[0].parent_id = "/panda_link0";
+     objectTrackingList[0].target_id = "/ar_marker_3";
+     objectTrackingList[0].mujoco_name = "goal";
+
+     for(int i = 0; i < numberOfObjects; i++){
+         for(int j = 0; j < 7; j++){
+             objectPoseList[i](j) = 0.0f;
+         }
+     }
 
     // objectTrackingList[1].parent_id = "/panda_link0";
     // objectTrackingList[1].target_id = "/panda_hand_tcp";
@@ -40,7 +49,7 @@ MuJoCo_realRobot_ROS::~MuJoCo_realRobot_ROS(){
 
 void MuJoCo_realRobot_ROS::jointStates_callback(const sensor_msgs::JointState &msg){
     
-    // TODO - make this programatic
+    // TODO - make this dependant on size of msg?
     for(int i = 0; i < NUM_JOINTS; i++){
         jointVals[i] = msg.position[i];
     }
@@ -55,13 +64,42 @@ void MuJoCo_realRobot_ROS::frankaStates_callback(const franka_msgs::FrankaState 
     }
 }
 
+// order of poses is {x, y, z, w, wx, wy, wz}
+void MuJoCo_realRobot_ROS::optiTrack_callback(const geometry_msgs::PoseStamped &msg){
+    m_pose objectPose;
+    int objectPoseListIndex = 0;
+
+    // For coordinate frames in mujoco, offset the object coordinates by the base frame of robot
+    // as that is origin in mujoco
+    objectPoseList[objectPoseListIndex](0) = msg.pose.position.x - robotBase(0);
+    objectPoseList[objectPoseListIndex](1) = msg.pose.position.y - robotBase(1);
+    objectPoseList[objectPoseListIndex](2) = msg.pose.position.z - robotBase(2);
+
+    objectPoseList[objectPoseListIndex](3) = msg.pose.orientation.w;
+    objectPoseList[objectPoseListIndex](4) = msg.pose.orientation.x;
+    objectPoseList[objectPoseListIndex](5) = msg.pose.orientation.y;
+    objectPoseList[objectPoseListIndex](6) = msg.pose.orientation.z;
+
+}
+
+void MuJoCo_realRobot_ROS::robotBasePose_callback(const geometry_msgs::PoseStamped &msg){
+    robotBase(0) = msg.pose.position.x;
+    robotBase(1) = msg.pose.position.y;
+    robotBase(2) = msg.pose.position.z;
+
+    robotBase(3) = msg.pose.orientation.w;
+    robotBase(4) = msg.pose.orientation.x;
+    robotBase(5) = msg.pose.orientation.y;
+    robotBase(6) = msg.pose.orientation.z;
+}
+
 void MuJoCo_realRobot_ROS::updateMujocoData(mjModel* m, mjData* d){
 
     ros::spinOnce();
 
     updateRobotState(m, d);
 
-    // updateScene(m, d);
+    updateScene(m, d);
 
     mj_forward(m, d);
 }
@@ -82,33 +120,50 @@ void MuJoCo_realRobot_ROS::updateRobotState(mjModel* m, mjData* d){
 
 void MuJoCo_realRobot_ROS::updateScene(mjModel* m, mjData* d){
     tf::StampedTransform transform;
+//    if(1){
+//        int cheezit_id = mj_name2id(m, mjOBJ_BODY, objectTrackingList[0].mujoco_name.c_str());
+//        m_point bodyPos;
+//        bodyPos(0) = 0.5;
+//        bodyPos(1) = 0;
+//        bodyPos(2) = 0.041;
+//        set_BodyPosition(m, d, cheezit_id, bodyPos);
+//    }
+    if(OPTITRACK){
+        int itemId = mj_name2id(m, mjOBJ_BODY, objectTrackingList[0].mujoco_name.c_str());
+        m_point bodyPoint;
+        bodyPoint(0) = objectPoseList[0](0) - 0.06;            // mujoco x
+        bodyPoint(1) = -objectPoseList[0](2);           // mujoco y
+        bodyPoint(2) = objectPoseList[0](1) + 0.04;     // mujoco z (up/down)
+        set_BodyPosition(m, d, itemId, bodyPoint);
 
-   
-    for(int i = 0; i < numberOfObjects; i++){
+    }
+    else {
+        for (int i = 0; i < numberOfObjects; i++) {
+            try {
+                listener->lookupTransform(objectTrackingList[i].parent_id, objectTrackingList[i].target_id,
+                                          ros::Time(0), transform);
 
-        try{
-            listener->lookupTransform(objectTrackingList[i].parent_id, objectTrackingList[i].target_id, ros::Time(0), transform);
+                int cheezit_id = mj_name2id(m, mjOBJ_BODY, objectTrackingList[i].mujoco_name.c_str());
 
-            int cheezit_id = mj_name2id(m, mjOBJ_BODY, objectTrackingList[i].mujoco_name.c_str());
+                m_point bodyPos;
+                bodyPos(0) = transform.getOrigin().x();
+                bodyPos(1) = transform.getOrigin().y();
+                bodyPos(2) = transform.getOrigin().z();
+                set_BodyPosition(m, d, cheezit_id, bodyPos);
 
-            m_point bodyPos;
-            bodyPos(0) = transform.getOrigin().x();
-            bodyPos(1) = transform.getOrigin().y();
-            bodyPos(2) = transform.getOrigin().z();
-            set_BodyPosition(m, d, cheezit_id, bodyPos);
-            
-            float x = transform.getRotation().x();
-            float y = transform.getRotation().y();
-            float z = transform.getRotation().z();
-            float w = transform.getRotation().w();
+                float x = transform.getRotation().x();
+                float y = transform.getRotation().y();
+                float z = transform.getRotation().z();
+                float w = transform.getRotation().w();
 
-            Quaternionf q = {w, x, y, z};
-            setBodyQuat(m, d, cheezit_id, q);
+                Quaternionf q = {w, x, y, z};
+                setBodyQuat(m, d, cheezit_id, q);
 
-        }
-        catch (tf::TransformException ex){
-            std::cout << " no ar marker 3 found" << std::endl;
-            ROS_ERROR("%s",ex.what());
+            }
+            catch (tf::TransformException ex) {
+                std::cout << " no ar marker 3 found" << std::endl;
+                ROS_ERROR("%s", ex.what());
+            }
         }
     }
 }
@@ -199,6 +254,44 @@ void MuJoCo_realRobot_ROS::sendTorquesToRealRobot(double torques[]){
         torque_pub->publish(desired_torques);
     }
 }
+
+void MuJoCo_realRobot_ROS::sendPositionsToRealRobot(double positions[]){
+    std_msgs::Float64MultiArray  desired_positions;
+    double jointSpeedLimits[NUM_JOINTS] = {0.6, 0.5, 0.5, 0.5, 1, 1, 1};
+    //double torqueLimits[NUM_JOINTS] = {10.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0};
+
+    if(!haltRobot){
+        //std::cout << "torques Sent: " << torques[0] << ", " << torques[1] << ", " << torques[2] << ", " << torques[3] << ", " << torques[4] << ", " << torques[5] << ", " << torques[6] << ", " << std::endl;
+        for(int i = 0; i < NUM_JOINTS; i++){
+
+            if(jointSpeeds[i] > jointSpeedLimits[i]){
+                std::cout << "safety vel triggered" << std::endl;
+                std::cout << "joint " << i <<  " speed: " << jointSpeeds[i] << std::endl;
+                std::cout << "joints at safety trigger: " << jointVals[i] << std::endl;
+                haltRobot = true;
+            }
+
+            if(jointSpeeds[i] < -jointSpeedLimits[i]){
+                std::cout << "safety vel triggered" << std::endl;
+                std::cout << "joint " << i <<  " speed: " << jointSpeeds[i] << std::endl;
+                std::cout << "joints at safety trigger: " << jointVals[i] << std::endl;
+                haltRobot = true;
+            }
+
+            desired_positions.data.push_back(positions[i]);
+
+        }
+        //std::cout << "torque 0: " << desired_torques.data[0] << std::endl;
+        torque_pub->publish(desired_positions);
+    }
+    else{
+        // dont publish anything
+
+    }
+
+    ros::spinOnce();
+}
+
 
 // void MuJoCo_realRobot_ROS::resetTorqueControl(){
 //     haltRobot = false;
