@@ -38,7 +38,8 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfO
     // TODO - when class is instantied, have it check what controllers are running and keep track of it
     currentController = "position_joint_trajectory_controller";
 
-    firstCallbackCalled = false;
+    jointsCallBackCalled = false;
+    objectCallBackCalled = false;
 
 }
 
@@ -54,7 +55,7 @@ void MuJoCo_realRobot_ROS::jointStates_callback(const sensor_msgs::JointState &m
         jointVals[i] = msg.position[i];
     }
 
-    firstCallbackCalled = true;
+    jointsCallBackCalled = true;
 }
 
 void MuJoCo_realRobot_ROS::frankaStates_callback(const franka_msgs::FrankaState &msg){
@@ -79,6 +80,9 @@ void MuJoCo_realRobot_ROS::optiTrack_callback(const geometry_msgs::PoseStamped &
     objectPoseList[objectPoseListIndex](4) = msg.pose.orientation.x;
     objectPoseList[objectPoseListIndex](5) = msg.pose.orientation.y;
     objectPoseList[objectPoseListIndex](6) = msg.pose.orientation.z;
+
+    objectCallBackCalled = true;
+    std::cout << "optitrack callback called \n";
 
 }
 

@@ -73,7 +73,8 @@ class MuJoCo_realRobot_ROS{
 
         void resetTorqueControl();
 
-        bool firstCallbackCalled;
+        bool jointsCallBackCalled;
+        bool objectCallBackCalled;
 
     private:
 
