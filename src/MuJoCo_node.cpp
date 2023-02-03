@@ -82,7 +82,6 @@ void MuJoCo_realRobot_ROS::optiTrack_callback(const geometry_msgs::PoseStamped &
     objectPoseList[objectPoseListIndex](6) = msg.pose.orientation.z;
 
     objectCallBackCalled = true;
-    std::cout << "optitrack callback called \n";
 
 }
 
