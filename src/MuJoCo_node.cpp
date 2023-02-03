@@ -134,9 +134,9 @@ void MuJoCo_realRobot_ROS::updateScene(mjModel* m, mjData* d){
     if(OPTITRACK){
         int itemId = mj_name2id(m, mjOBJ_BODY, objectTrackingList[0].mujoco_name.c_str());
         m_point bodyPoint;
-        bodyPoint(0) = objectPoseList[0](0) - 0.06;            // mujoco x
-        bodyPoint(1) = -objectPoseList[0](2);           // mujoco y
-        bodyPoint(2) = objectPoseList[0](1) + 0.04;     // mujoco z (up/down)
+        bodyPoint(0) = objectPoseList[0](0);                // mujoco x
+        bodyPoint(1) = -objectPoseList[0](2);               // mujoco y
+        bodyPoint(2) = objectPoseList[0](1) - 0.0808775;    // mujoco z (up/down)
         set_BodyPosition(m, d, itemId, bodyPoint);
 
     }
