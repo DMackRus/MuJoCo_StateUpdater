@@ -223,7 +223,7 @@ bool MuJoCo_realRobot_ROS::switchController(std::string controllerName){
 
 void MuJoCo_realRobot_ROS::sendTorquesToRealRobot(double torques[]){
     std_msgs::Float64MultiArray  desired_torques;
-    double jointSpeedLimits[NUM_JOINTS] = {0.5, 0.5, 0.5, 0.5, 1, 1, 1};
+    double jointSpeedLimits[NUM_JOINTS] = {0.5, 0.5, 0.5, 0.5, 1, 1.5, 1.5};
     bool jointVelsSafe = true;
 
     if(!haltRobot){
@@ -260,7 +260,7 @@ void MuJoCo_realRobot_ROS::sendTorquesToRealRobot(double torques[]){
 
 void MuJoCo_realRobot_ROS::sendPositionsToRealRobot(double positions[]){
     std_msgs::Float64MultiArray  desired_positions;
-    double jointSpeedLimits[NUM_JOINTS] = {0.6, 0.5, 0.5, 0.5, 1, 1, 1};
+    double jointSpeedLimits[NUM_JOINTS] = {0.6, 0.5, 0.5, 0.5, 1, 1.7, 3};
     //double torqueLimits[NUM_JOINTS] = {10.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0};
 
     if(!haltRobot){

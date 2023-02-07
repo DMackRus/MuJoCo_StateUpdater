@@ -4,9 +4,6 @@
   <version>0.0.0</version>
   <description>ROS overlay to display the state of a real robot in a MuJoCo environment</description>
 
-  <!-- One maintainer tag required, multiple allowed, one person per tag -->
-  <!-- Example:  -->
-  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
   <maintainer email="el16dmcr@leeds.ac.uk">DavidRussell</maintainer>
 
 
@@ -14,7 +11,6 @@
   <!-- Commonly used license strings: -->
   <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
   <license>TODO</license>
-
 
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
