@@ -32,9 +32,8 @@ MuJoCo_realRobot_ROS* mujoco_realRobot_ROS;
 void setupMujocoWorld(){
     char error[1000];
 
-    // TODO - fix this hard coded path issue
-    // model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/models/franka_emika_panda/reaching_scene.xml", NULL, error, 1000);
-    model = mj_loadXML("/home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/Dynamic_Interpolation_iLQR/models/new_model/pushing_scene.xml", NULL, error, 1000);
+//    model = mj_loadXML("/home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/Franka-emika-panda-arm/V1/cylinder_pushing.xml", NULL, error, 1000);
+    model = mj_loadXML("/home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/Franka-emika-panda-arm/V1/cheezit_pushing.xml", NULL, error, 1000);
 
     if(!model) {
         std::cout << "model xml Error" << std::endl;
@@ -103,7 +102,14 @@ int main(int argc, char **argv){
 
     // Create an instance of 
     // MuJoCo_realRobot_ROS mujocoController(true, &n);
-    mujoco_realRobot_ROS = new MuJoCo_realRobot_ROS(argc, argv, 2);
+    std::vector<m_point> objectOffsetList;
+    m_point objectPointOffset;
+    // blue tin
+    //objectPointOffset << 0.0, -0.0808775, 0.0;
+    // cheezit box
+    objectPointOffset << 0.0, -0.02738, 0.0;
+    objectOffsetList.push_back(objectPointOffset);
+    mujoco_realRobot_ROS = new MuJoCo_realRobot_ROS(argc, argv, 2, "/mocap/rigid_bodies/cheezit_dave/pose", objectOffsetList);
 
     int counter = 0;
 

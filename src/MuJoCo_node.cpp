@@ -1,6 +1,6 @@
 #include "MuJoCo_node.h"
 
-MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfObjects){
+MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfObjects, std::string optitrackTopicName, std::vector<m_point> _objectPosOffsetList){
 
     ros::init(argc, argv, "MuJoCo_node");
 
@@ -9,7 +9,8 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfO
 
     jointStates_sub = n->subscribe("joint_states", 10, &MuJoCo_realRobot_ROS::jointStates_callback, this); 
     frankaStates_sub = n->subscribe("/franka_state_controller/franka_states", 10, &MuJoCo_realRobot_ROS::frankaStates_callback, this);
-    optiTrack_sub = n->subscribe("/mocap/rigid_bodies/blue_tin/pose", 10, &MuJoCo_realRobot_ROS::optiTrack_callback, this);
+    //optiTrack_sub = n->subscribe("/mocap/rigid_bodies/blue_tin/pose", 10, &MuJoCo_realRobot_ROS::optiTrack_callback, this);
+    optiTrack_sub = n->subscribe(optitrackTopicName, 10, &MuJoCo_realRobot_ROS::optiTrack_callback, this);
     robotBase_sub = n->subscribe("/mocap/rigid_bodies/pandaRobot/pose", 10, &MuJoCo_realRobot_ROS::robotBasePose_callback, this);
 
     torque_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("//effort_group_position_controller/command", 1));
@@ -19,7 +20,12 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfO
     for(int i = 0; i < numberOfObjects; i++){
         objectTrackingList.push_back(objectTracking());
         objectPoseList.push_back(m_pose_quat());
+        objectPosOffsetList.push_back(m_point());
     }
+
+    objectPosOffsetList[0](0) = _objectPosOffsetList[0](0);
+    objectPosOffsetList[0](1) = _objectPosOffsetList[0](1);
+    objectPosOffsetList[0](2) = _objectPosOffsetList[0](2);
 
      objectTrackingList[0].parent_id = "/panda_link0";
      objectTrackingList[0].target_id = "/ar_marker_3";
@@ -134,10 +140,17 @@ void MuJoCo_realRobot_ROS::updateScene(mjModel* m, mjData* d){
     if(OPTITRACK){
         int itemId = mj_name2id(m, mjOBJ_BODY, objectTrackingList[0].mujoco_name.c_str());
         m_point bodyPoint;
-        bodyPoint(0) = objectPoseList[0](0);                // mujoco x
-        bodyPoint(1) = -objectPoseList[0](2);               // mujoco y
-        bodyPoint(2) = objectPoseList[0](1) - 0.0808775;    // mujoco z (up/down)
+        bodyPoint(0) = objectPoseList[0](0) + objectPosOffsetList[0](0);    // mujoco x
+        bodyPoint(1) = -objectPoseList[0](2) + objectPosOffsetList[0](2);   // mujoco y
+        bodyPoint(2) = objectPoseList[0](1) + objectPosOffsetList[0](1);    // mujoco z (up/down)
         set_BodyPosition(m, d, itemId, bodyPoint);
+
+        Quaternionf q;
+        q.w() = objectPoseList[0](3);
+        q.x() = objectPoseList[0](4);
+        q.y() = -objectPoseList[0](6);
+        q.z() = objectPoseList[0](5);
+        setBodyQuat(m, d, itemId, q);
 
     }
     else {
@@ -260,7 +273,7 @@ void MuJoCo_realRobot_ROS::sendTorquesToRealRobot(double torques[]){
 
 void MuJoCo_realRobot_ROS::sendPositionsToRealRobot(double positions[]){
     std_msgs::Float64MultiArray  desired_positions;
-    double jointSpeedLimits[NUM_JOINTS] = {0.6, 0.5, 0.5, 0.5, 1, 1.7, 3};
+    double jointSpeedLimits[NUM_JOINTS] = {0.6, 0.5, 0.8, 0.5, 1, 2, 3};
     //double torqueLimits[NUM_JOINTS] = {10.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0};
 
     if(!haltRobot){

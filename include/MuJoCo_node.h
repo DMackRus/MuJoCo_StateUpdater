@@ -46,7 +46,7 @@ struct objectTracking{
 class MuJoCo_realRobot_ROS{
     public:
         // Constructor
-        MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfObjects);
+        MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfObjects, std::string optitrackTopicName, std::vector<m_point> _objectPosOffsetList);
         ~MuJoCo_realRobot_ROS();
 
         // -----------------------------------------------------------------------------------
@@ -82,6 +82,7 @@ class MuJoCo_realRobot_ROS{
 
         std::vector<objectTracking> objectTrackingList;
         std::vector<m_pose_quat> objectPoseList;
+        std::vector<m_point> objectPosOffsetList;
 
         m_pose_quat robotBase;
 
