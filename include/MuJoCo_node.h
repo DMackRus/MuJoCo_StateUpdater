@@ -57,7 +57,7 @@ class MuJoCo_realRobot_ROS{
         ros::Subscriber frankaStates_sub;
         void frankaStates_callback(const franka_msgs::FrankaState &msg);
 
-        ros::Subscriber optiTrack_sub;
+        std::vector<ros::Subscriber> optiTrack_sub;
         void optiTrack_callback(const geometry_msgs::PoseStamped &msg);
 
         ros::Subscriber robotBase_sub;

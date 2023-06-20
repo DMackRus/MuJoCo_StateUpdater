@@ -10,8 +10,16 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfO
 
     jointStates_sub = n->subscribe("joint_states", 10, &MuJoCo_realRobot_ROS::jointStates_callback, this); 
     frankaStates_sub = n->subscribe("/franka_state_controller/franka_states", 10, &MuJoCo_realRobot_ROS::frankaStates_callback, this);
-    //optiTrack_sub = n->subscribe("/mocap/rigid_bodies/blue_tin/pose", 10, &MuJoCo_realRobot_ROS::optiTrack_callback, this);
-    optiTrack_sub = n->subscribe(optitrackTopicName, 10, &MuJoCo_realRobot_ROS::optiTrack_callback, this);
+
+    optiTrack_sub.push_back(ros::Subscriber());
+    optiTrack_sub.push_back(ros::Subscriber());
+    optiTrack_sub[0] = n->subscribe("/mocap/rigid_bodies/Jello_0/pose", 10, &MuJoCo_realRobot_ROS::optiTrack_callback, this);
+    optiTrack_sub[0] = n->subscribe("/mocap/rigid_bodies/Jello_1/pose", 10, &MuJoCo_realRobot_ROS::optiTrack_callback, this);
+
+
+//    optiTrack_sub = n->subscribe("/mocap/rigid_bodies/blue_tin/pose", 10, &MuJoCo_realRobot_ROS::optiTrack_callback, this);
+    std::string name = "name";
+//    optiTrack_sub = n->subscribe<geometry_msgs::PoseStamped>(optitrackTopicName, 10, boost::bind(&MuJoCo_realRobot_ROS::optiTrack_callback, _1, "Extra Argument 1"));
     robotBase_sub = n->subscribe("/mocap/rigid_bodies/pandaRobot/pose", 10, &MuJoCo_realRobot_ROS::robotBasePose_callback, this);
 
     torque_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("//effort_group_position_controller/command", 1));
@@ -30,7 +38,7 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfO
 
      objectTrackingList[0].parent_id = "/panda_link0";
      objectTrackingList[0].target_id = "/ar_marker_3";
-     objectTrackingList[0].mujoco_name = "goal";
+     objectTrackingList[0].mujoco_name = "blueTin";
 
      for(int i = 0; i < numberOfObjects; i++){
          for(int j = 0; j < 7; j++){
@@ -47,6 +55,7 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfO
 
     jointsCallBackCalled = false;
     objectCallBackCalled = false;
+    std::cout << "End of constructor" << std::endl;
 
 }
 
@@ -112,6 +121,7 @@ void MuJoCo_realRobot_ROS::updateMujocoData(mjModel* m, mjData* d){
     updateScene(m, d);
 
     mj_forward(m, d);
+    std::cout << "data inside node after forwards: " << d->qpos[6] << std::endl;
 }
 
 void MuJoCo_realRobot_ROS::updateRobotState(mjModel* m, mjData* d){
