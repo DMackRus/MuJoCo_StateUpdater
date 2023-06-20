@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug/devel/setup.sh

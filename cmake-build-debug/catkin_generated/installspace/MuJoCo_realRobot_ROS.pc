@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: MuJoCo_realRobot_ROS
+Description: Description of MuJoCo_realRobot_ROS
+Version: 0.0.0
+Cflags: -I${prefix}/include -I/opt/ros/noetic/include
+Libs: -L${prefix}/lib /opt/ros/noetic/lib/x86_64-linux-gnu/libfranka.so.0.9.2
+Requires: roscpp rospy std_msgs sensor_msgs tf
