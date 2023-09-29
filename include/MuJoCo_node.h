@@ -19,8 +19,8 @@
 #include "controller_manager_msgs/LoadController.h"
 
 // MuJoCo Simulator
-#include "mujoco.h"
-#include <GLFW/glfw3.h>
+//#include "mujoco.h"
+//#include <GLFW/glfw3.h>
 
 #include <Eigen/Dense>
 
@@ -37,7 +37,6 @@ typedef Eigen::Matrix<double, 7, 1> m_pose_quat;
 
 #define NUM_JOINTS          7
 #define PI                  3.14159265359
-#define NUM_POSES_HISTORY   10
 #define OPTITRACK           1
 
 struct objectTracking{
@@ -46,10 +45,27 @@ struct objectTracking{
     std::string mujoco_name;
 };
 
+struct robot{
+    std::string name;
+    std::vector<double> joint_positions;
+};
+
+struct object{
+    std::string name;
+    double positions[3];
+    // x, y ,z, w
+    double quaternion[4];
+};
+
+struct sceneState{
+    std::vector<robot> robots;
+    std::vector<object> objects;
+};
+
 class MuJoCo_realRobot_ROS{
     public:
         // Constructor
-        MuJoCo_realRobot_ROS(int argc, char **argv, std::vector<std::string> optitrack_topic_names, std::vector<m_point> _objectPosOffsetList);
+        MuJoCo_realRobot_ROS(int argc, char **argv, std::vector<std::string> optitrack_topic_names);
         ~MuJoCo_realRobot_ROS();
 
         // -----------------------------------------------------------------------------------
@@ -67,8 +83,8 @@ class MuJoCo_realRobot_ROS{
         void robotBasePose_callback(const geometry_msgs::PoseStamped &msg);
         // -----------------------------------------------------------------------------------
 
-        // Updates Mujoco data
-        void updateMujocoData(mjModel* m, mjData* d);
+        // Return a struct representing the state of the scene
+        sceneState returnScene();
 
         bool switchController(std::string controllerName);
         void sendTorquesToRealRobot(double torques[]);
@@ -99,16 +115,13 @@ class MuJoCo_realRobot_ROS{
         int getObjectId(std::string itemName);
 
         // Updates the joint states of the robot
-        void updateRobotState(mjModel* m, mjData* d);
+        std::vector<robot> returnRobotState();
         // Loops through all known objects in the scene and updates their position and rotation
-        void updateScene(mjModel* m, mjData* d);
-        void updateObjectHistory();
-        m_pose_quat filterObjectHistory(std::vector<m_pose_quat> objectPoses);
+        std::vector<object> returnObjectsStates();
+//        m_pose_quat filterObjectHistory(std::vector<m_pose_quat> objectPoses);
 
         // Sets the qpos value for the corresponding body id to the specified value
-        void set_BodyPosition(mjModel *m, mjData* d, int bodyId, m_point pos);
-        void set_qPosVal(mjModel *m, mjData *d, int bodyId, bool freeJoint, int freeJntAxis, double val);
-        void setBodyQuat(mjModel *m, mjData *d, int bodyId, Quaternionf q);
+
 
         double jointVals[7];
         double jointSpeeds[7];

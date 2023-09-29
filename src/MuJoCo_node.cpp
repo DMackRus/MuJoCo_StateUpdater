@@ -1,7 +1,7 @@
 #include "MuJoCo_node.h"
 
 
-MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, std::vector<std::string> optitrack_topic_names, std::vector<m_point> _objectPosOffsetList){
+MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, std::vector<std::string> optitrack_topic_names){
 
     ros::init(argc, argv, "MuJoCo_node");
 
@@ -15,7 +15,6 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, std::vector<st
     for(int i = 0; i < optitrack_topic_names.size(); i++){
         auto callback = std::bind(&MuJoCo_realRobot_ROS::optiTrack_callback, this, std::placeholders::_1, optitrack_topic_names[i]);
         std::string topic = "/mocap/rigid_bodies/" + optitrack_topic_names[i] + "/pose";
-        std::cout << "topic name: " << topic << "\n";
         optiTrack_sub.push_back(n->subscribe<geometry_msgs::PoseStamped>(topic, 1, callback));
     }
 
@@ -34,16 +33,11 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, std::vector<st
         objectTrackingList[i].mujoco_name = optitrack_topic_names[i];
     }
 
-//    objectPosOffsetList[0](0) = _objectPosOffsetList[0](0);
-//    objectPosOffsetList[0](1) = _objectPosOffsetList[0](1);
-//    objectPosOffsetList[0](2) = _objectPosOffsetList[0](2);
-
     // TODO - when class is instantied, have it check what controllers are running and keep track of it
     currentController = "position_joint_trajectory_controller";
 
     jointsCallBackCalled = false;
     objectCallBackCalled = false;
-    std::cout << "End of constructor" << std::endl;
 
 }
 
@@ -109,99 +103,108 @@ void MuJoCo_realRobot_ROS::robotBasePose_callback(const geometry_msgs::PoseStamp
     robotBase(6) = msg.pose.orientation.z;
 }
 
-void MuJoCo_realRobot_ROS::updateMujocoData(mjModel* m, mjData* d){
+sceneState MuJoCo_realRobot_ROS::returnScene(){
+    sceneState world;
 
     ros::spinOnce();
+    std::vector<robot> robots = returnRobotState();
+    std::vector<object> objects = returnObjectsStates();
 
-    updateRobotState(m, d);
+    world.robots = robots;
+    world.objects = objects;
 
-    updateScene(m, d);
-
-    mj_forward(m, d);
-
-//    std::cout << "data inside node after forwards: " << d->qpos[6] << std::endl;
+    return world;
 }
 
-void MuJoCo_realRobot_ROS::updateRobotState(mjModel* m, mjData* d){
+// TODO - should probably add abaility for multiple robots, which should be specified by constructo call
+std::vector<robot> MuJoCo_realRobot_ROS::returnRobotState() {
+
+    std::vector<robot> robots;
+    robots.push_back(robot());
+    robots[0].name = "panda";
+
     for(int i = 0; i < NUM_JOINTS; i++){
         if(i == 5){
-            d->qpos[i] = jointVals[i] - PI/2;
+            robots[0].joint_positions.push_back(jointVals[i] - PI/2);
         }
         else if(i == 6){
-            d->qpos[i] = jointVals[i] - PI/4;
+            robots[0].joint_positions.push_back(jointVals[i] - PI/4);
         }
         else{
-            d->qpos[i] = jointVals[i];
+            robots[0].joint_positions.push_back(jointVals[i]);
         }
+
     }
+
+
+    return robots;
 }
 
-void MuJoCo_realRobot_ROS::updateScene(mjModel* m, mjData* d){
+std::vector<object> MuJoCo_realRobot_ROS::returnObjectsStates(){
     tf::StampedTransform transform;
+    std::vector<object> objects;
     if(OPTITRACK){
         for(int i = 0; i < numberOfObjects; i++){
-            int itemId = mj_name2id(m, mjOBJ_BODY, objectTrackingList[i].mujoco_name.c_str());
-            m_point bodyPoint;
-            bodyPoint(0) = objectPoseList[i](0); //  + objectPosOffsetList[i](0);    // mujoco x
-            bodyPoint(1) = -objectPoseList[i](2); // + objectPosOffsetList[0](2);    // mujoco y
-            bodyPoint(2) = objectPoseList[i](1); //  + objectPosOffsetList[0](1);    // mujoco z (up/down)
-            set_BodyPosition(m, d, itemId, bodyPoint);
+            objects.push_back(object());
+            objects[i].name = optitrack_objects[i];
+            // x, y, z
+            objects[i].positions[0] = objectPoseList[i](0);
+            objects[i].positions[1] = -objectPoseList[i](2);
+            objects[i].positions[2] = objectPoseList[i](1);
 
-            Quaternionf q;
-            q.w() = objectPoseList[i](3);
-            q.x() = objectPoseList[i](4);
-            q.y() = -objectPoseList[i](6);
-            q.z() = objectPoseList[i](5);
-            setBodyQuat(m, d, itemId, q);
+            // This seems so random, Optitrack and mujoco conversion is weird...
+            // x, y, z, w
+            objects[i].quaternion[0] = objectPoseList[i](4);
+            objects[i].quaternion[1] = -objectPoseList[i](6);
+            objects[i].quaternion[2] = objectPoseList[i](5);
+            objects[i].quaternion[3] = objectPoseList[i](3);
+
+//            int itemId = mj_name2id(m, mjOBJ_BODY, objectTrackingList[i].mujoco_name.c_str());
+//            m_point bodyPoint;
+//            bodyPoint(0) = objectPoseList[i](0); //  + objectPosOffsetList[i](0);    // mujoco x
+//            bodyPoint(1) = -objectPoseList[i](2); // + objectPosOffsetList[0](2);    // mujoco y
+//            bodyPoint(2) = objectPoseList[i](1); //  + objectPosOffsetList[0](1);    // mujoco z (up/down)
+//            set_BodyPosition(m, d, itemId, bodyPoint);
+//
+//            Quaternionf q;
+//            q.w() = objectPoseList[i](3);
+//            q.x() = objectPoseList[i](4);
+//            q.y() = -objectPoseList[i](6);
+//            q.z() = objectPoseList[i](5);
+//            setBodyQuat(m, d, itemId, q);
         }
     }
-    else {
-        for (int i = 0; i < numberOfObjects; i++) {
-            try {
-                listener->lookupTransform(objectTrackingList[i].parent_id, objectTrackingList[i].target_id,
-                                          ros::Time(0), transform);
+//    else {
+//        for (int i = 0; i < numberOfObjects; i++) {
+//            try {
+//                listener->lookupTransform(objectTrackingList[i].parent_id, objectTrackingList[i].target_id,
+//                                          ros::Time(0), transform);
+//
+//                int cheezit_id = mj_name2id(m, mjOBJ_BODY, objectTrackingList[i].mujoco_name.c_str());
+//
+//                m_point bodyPos;
+//                bodyPos(0) = transform.getOrigin().x();
+//                bodyPos(1) = transform.getOrigin().y();
+//                bodyPos(2) = transform.getOrigin().z();
+//                set_BodyPosition(m, d, cheezit_id, bodyPos);
+//
+//                float x = transform.getRotation().x();
+//                float y = transform.getRotation().y();
+//                float z = transform.getRotation().z();
+//                float w = transform.getRotation().w();
+//
+//                Quaternionf q = {w, x, y, z};
+//                setBodyQuat(m, d, cheezit_id, q);
+//
+//            }
+//            catch (tf::TransformException ex) {
+//                std::cout << " no ar marker 3 found" << std::endl;
+//                ROS_ERROR("%s", ex.what());
+//            }
+//        }
+//    }
 
-                int cheezit_id = mj_name2id(m, mjOBJ_BODY, objectTrackingList[i].mujoco_name.c_str());
-
-                m_point bodyPos;
-                bodyPos(0) = transform.getOrigin().x();
-                bodyPos(1) = transform.getOrigin().y();
-                bodyPos(2) = transform.getOrigin().z();
-                set_BodyPosition(m, d, cheezit_id, bodyPos);
-
-                float x = transform.getRotation().x();
-                float y = transform.getRotation().y();
-                float z = transform.getRotation().z();
-                float w = transform.getRotation().w();
-
-                Quaternionf q = {w, x, y, z};
-                setBodyQuat(m, d, cheezit_id, q);
-
-            }
-            catch (tf::TransformException ex) {
-                std::cout << " no ar marker 3 found" << std::endl;
-                ROS_ERROR("%s", ex.what());
-            }
-        }
-    }
-}
-
-m_pose_quat filterObjectHistory(std::vector<m_pose_quat> objectPoses){
-    m_pose_quat filteredPose;
-
-    // filteredPose = objectPoses[0];
-
-    // for(int i = 0; i < NUM_POSES_HISTORY - 1; i++){
-    //     for(int j = 0; j < 7; j++){
-    //         filteredPose[i](j) += objectPoses[i](j);
-    //     }
-    // }
-
-    // for(int j = 0; j < 7; j++){
-    //     filteredPose[i](j) /= NUM_POSES_HISTORY;
-    // }
-
-    return filteredPose;
+    return objects;
 }
 
 // TODO - check loaded controllers, only load controller if required.
@@ -314,49 +317,3 @@ void MuJoCo_realRobot_ROS::sendPositionsToRealRobot(double positions[]){
 // void MuJoCo_realRobot_ROS::resetTorqueControl(){
 //     haltRobot = false;
 // }
-
-//----------------------------------------------------------------------------------------------------------------------
-//
-//                             Setting positions/rotations of objects in MuJoCo
-//
-//---------------------------------------------------------------------------------------------------------------------
-
-void MuJoCo_realRobot_ROS::set_BodyPosition(mjModel* m, mjData* d, int bodyId, m_point pos){
-
-    for(int i = 0; i < 3; i++){
-        set_qPosVal(m, d, bodyId, true, i, pos(i));
-    }
-
-}
-
-void MuJoCo_realRobot_ROS::set_qPosVal(mjModel *m, mjData *d, int bodyId, bool freeJoint, int freeJntAxis, double val){
-    const int jointIndex = m->body_jntadr[bodyId];
-    const int posIndex = m->jnt_qposadr[jointIndex];
-
-    // free joint axis can be any number between 0 and 2 (x, y, z)
-    if(freeJntAxis < 0 or freeJntAxis > 3){
-        std::cout << "you have used set_qPosVal wrong!!!!!!!!!!! Freejntaxis was: " << freeJntAxis << std::endl;
-    }
-
-    if(!freeJoint){
-        // automatically return 1 val
-        d->qpos[posIndex] = val;
-
-    }
-    else{
-        // have to add on freeJntAxis to get desired x y or z component of free joint
-        d->qpos[posIndex + freeJntAxis] = val;
-    }
-
-}
-
-void MuJoCo_realRobot_ROS::setBodyQuat(mjModel *m, mjData *d, int bodyId, Quaternionf q){
-    int jointIndex = m->body_jntadr[bodyId];
-    int qposIndex = m->jnt_qposadr[jointIndex];
-
-    d->qpos[qposIndex + 3] = q.w();
-    d->qpos[qposIndex + 4] = q.x();
-    d->qpos[qposIndex + 5] = q.y();
-    d->qpos[qposIndex + 6] = q.z();
-}
-

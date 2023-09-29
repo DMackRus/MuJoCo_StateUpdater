@@ -44,7 +44,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug/gtest/googletest/cmake_install.cmake")
+  include("/home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug/gtest/googletest/cmake_install.cmake")
 
 endif()
 

@@ -1,7 +1,7 @@
 CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o: \
- /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/src/demo_vis.cpp \
+ /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/src/demo_vis.cpp \
  /usr/include/stdc-predef.h \
- /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/include/MuJoCo_node.h \
+ /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/include/MuJoCo_node.h \
  /usr/include/c++/9/cmath \
  /usr/include/x86_64-linux-gnu/c++/9/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/9/bits/os_defines.h \
@@ -1551,18 +1551,7 @@ CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o: \
  /opt/ros/noetic/include/controller_manager_msgs/LoadController.h \
  /opt/ros/noetic/include/controller_manager_msgs/LoadControllerRequest.h \
  /opt/ros/noetic/include/controller_manager_msgs/LoadControllerResponse.h \
- /home/davidrussell/catkin_ws/src/mujocoLib/include/mujoco.h \
- /home/davidrussell/catkin_ws/src/mujocoLib/include/mjexport.h \
- /home/davidrussell/catkin_ws/src/mujocoLib/include/mjdata.h \
- /home/davidrussell/catkin_ws/src/mujocoLib/include/mjtnum.h \
- /home/davidrussell/catkin_ws/src/mujocoLib/include/mjmodel.h \
- /home/davidrussell/catkin_ws/src/mujocoLib/include/mjplugin.h \
- /home/davidrussell/catkin_ws/src/mujocoLib/include/mjvisualize.h \
- /home/davidrussell/catkin_ws/src/mujocoLib/include/mjrender.h \
- /home/davidrussell/catkin_ws/src/mujocoLib/include/mjui.h \
- /usr/include/GLFW/glfw3.h /usr/include/GL/gl.h /usr/include/GL/glext.h \
- /usr/include/KHR/khrplatform.h /usr/include/eigen3/Eigen/Dense \
- /usr/include/eigen3/Eigen/Core \
+ /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
  /usr/include/eigen3/Eigen/src/Core/util/Macros.h \
  /usr/include/eigen3/Eigen/src/Core/util/MKL_support.h \
@@ -1736,4 +1725,15 @@ CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o: \
  /usr/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
  /usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
  /usr/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
- /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h
+ /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
+ /home/davidrussell/catkin_ws/src/mujocoLib/include/mujoco.h \
+ /home/davidrussell/catkin_ws/src/mujocoLib/include/mjexport.h \
+ /home/davidrussell/catkin_ws/src/mujocoLib/include/mjdata.h \
+ /home/davidrussell/catkin_ws/src/mujocoLib/include/mjtnum.h \
+ /home/davidrussell/catkin_ws/src/mujocoLib/include/mjmodel.h \
+ /home/davidrussell/catkin_ws/src/mujocoLib/include/mjplugin.h \
+ /home/davidrussell/catkin_ws/src/mujocoLib/include/mjvisualize.h \
+ /home/davidrussell/catkin_ws/src/mujocoLib/include/mjrender.h \
+ /home/davidrussell/catkin_ws/src/mujocoLib/include/mjui.h \
+ /usr/include/GLFW/glfw3.h /usr/include/GL/gl.h /usr/include/GL/glext.h \
+ /usr/include/KHR/khrplatform.h

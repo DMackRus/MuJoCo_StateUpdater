@@ -1,4 +1,6 @@
 #include "MuJoCo_node.h"
+#include "mujoco.h"
+#include <GLFW/glfw3.h>
 
 // -----------------------------------------------------------------------------------------
 // Keyboard + mouse callbacks + variables
@@ -29,11 +31,15 @@ mjData* mdata_real;
 
 MuJoCo_realRobot_ROS* mujoco_realRobot_ROS;
 
+void set_BodyPosition(mjModel *m, mjData* d, int bodyId, double position[3]);
+void set_qPosVal(mjModel *m, mjData *d, int bodyId, bool freeJoint, int freeJntAxis, double val);
+void setBodyQuat(mjModel *m, mjData *d, int bodyId, double quat[4]);
+
 void setupMujocoWorld(){
     char error[1000];
 
 //    model = mj_loadXML("/home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/Franka-emika-panda-arm/V1/cylinder_pushing.xml", NULL, error, 1000);
-    model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/mujoco_models/Franka_emika_scenes_V1/cylinder_pushing_heavyClutter_realWorld.xml", NULL, error, 1000);
+    model = mj_loadXML("/home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/mujoco_models/Franka_emika_scenes_V1/cylinder_pushing_heavyClutter_realWorld.xml", NULL, error, 1000);
 
     if(!model) {
         std::cout << "model xml Error" << std::endl;
@@ -78,7 +84,21 @@ void setupMujocoWorld(){
 
 void render(){
 
-    mujoco_realRobot_ROS->updateMujocoData(model, mdata_real);
+    sceneState world = mujoco_realRobot_ROS->returnScene();
+
+    for(int i = 0; i < world.robots.size(); i++){
+        for(int j = 0; j < world.robots[i].joint_positions.size(); j++){
+            mdata_real->qpos[j] = world.robots[i].joint_positions[j];
+        }
+    }
+
+    for(int i = 0; i < world.objects.size(); i++){
+        int bodyId = mj_name2id(model, mjOBJ_BODY, world.objects[i].name.c_str());
+        set_BodyPosition(model, mdata_real, bodyId, world.objects[i].positions);
+        setBodyQuat(model, mdata_real, bodyId, world.objects[i].quaternion);
+    }
+
+    mj_forward(model, mdata_real);
 
     // get framebuffer viewport
     mjrRect viewport = { 0, 0, 0, 0 };
@@ -96,23 +116,13 @@ void render(){
 }
 
 int main(int argc, char **argv){
-    std::cout << "Hello, world! date is 17th Jan" << std::endl;
 
     setupMujocoWorld();
 
     // Create an instance of 
     // MuJoCo_realRobot_ROS mujocoController(true, &n);
-    std::vector<m_point> objectOffsetList;
-    m_point objectPointOffset;
-    // blue tin
-    //objectPointOffset << 0.0, -0.0808775, 0.0;
-    // cheezit box
-    objectPointOffset << 0.0, -0.02738, 0.0;
-    objectOffsetList.push_back(objectPointOffset);
     std::vector<std::string> optitrack_names = {"HotChocolate", "Bistro_1", "Bistro_2", "Bistro_3", "Bistro_4", "Bistro_5", "Bistro_6", "Bistro_7"};
-    mujoco_realRobot_ROS = new MuJoCo_realRobot_ROS(argc, argv, optitrack_names, objectOffsetList);
-
-    int counter = 0;
+    mujoco_realRobot_ROS = new MuJoCo_realRobot_ROS(argc, argv, optitrack_names);
 
     //mujoco_realRobot_ROS->switchController("effort_group_effort_controller");
 
@@ -204,3 +214,44 @@ void windowCloseCallback(GLFWwindow * /*window*/) {
     mj_deleteModel(model);
     mj_deactivate();
 }
+
+void set_BodyPosition(mjModel* m, mjData* d, int bodyId, double position[3]){
+
+    for(int i = 0; i < 3; i++){
+        set_qPosVal(m, d, bodyId, true, i, position[i]);
+    }
+
+}
+
+void set_qPosVal(mjModel *m, mjData *d, int bodyId, bool freeJoint, int freeJntAxis, double val){
+    const int jointIndex = m->body_jntadr[bodyId];
+    const int posIndex = m->jnt_qposadr[jointIndex];
+
+    // free joint axis can be any number between 0 and 2 (x, y, z)
+    if(freeJntAxis < 0 or freeJntAxis > 3){
+        std::cout << "you have used set_qPosVal wrong!!!!!!!!!!! Freejntaxis was: " << freeJntAxis << std::endl;
+    }
+
+    if(!freeJoint){
+        // automatically return 1 val
+        d->qpos[posIndex] = val;
+
+    }
+    else{
+        // have to add on freeJntAxis to get desired x y or z component of free joint
+        d->qpos[posIndex + freeJntAxis] = val;
+    }
+
+}
+
+void setBodyQuat(mjModel *m, mjData *d, int bodyId, double quat[4]){
+    int jointIndex = m->body_jntadr[bodyId];
+    int qposIndex = m->jnt_qposadr[jointIndex];
+
+    d->qpos[qposIndex + 3] = quat[3];
+    d->qpos[qposIndex + 4] = quat[0];
+    d->qpos[qposIndex + 5] = quat[1];
+    d->qpos[qposIndex + 6] = quat[2];
+}
+
+

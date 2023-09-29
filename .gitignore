@@ -51,3 +51,4 @@ qtcreator-*
 CATKIN_IGNORE
 
 /mujoco_models
+/cmake-build-debug/*

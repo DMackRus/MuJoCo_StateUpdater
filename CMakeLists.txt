@@ -6,7 +6,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
+# Get nice variable names for one and two directories above this one
 get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
+get_filename_component(GRANDPARENT_DIR ${PARENT_DIR}/.. ABSOLUTE)
 
 set(Eigen3_FOUND True)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
@@ -16,25 +18,6 @@ if (TARGET Eigen3::Eigen)
 else()
     message(STATUS "could not find eigen library")
 endif (TARGET Eigen3::Eigen)
-
-#set(Mujoco_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include/MuJoCo)
-
-#find_library(GLFW libglfw.so.3 HINTS ${CMAKE_CURRENT_SOURCE_DIR}/include/MuJoCo/)
-#message(STATUS "GLFW lib found at: " ${GLFW})
-
-#file(GLOB LIB_MUJOCO ${CMAKE_CURRENT_SOURCE_DIR}/include/MuJoCo/libmujoco.so)
-#message(STATUS "MuJoCo lib found at: " ${LIB_MUJOCO})
-#
-#message(STATUS "Mujoco include directory: " ${Mujoco_INCLUDE_DIRS})
-#
-#include_directories(${Mujoco_INCLUDE_DIRS}
-#        ${EIGEN3_INCLUDE_DIRS}
-#        )
-#
-#link_directories(${Mujoco_INCLUDE_DIRS})
-
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -47,11 +30,6 @@ find_package(catkin REQUIRED COMPONENTS
  tf
  message_generation
 )
-
-# generate_messages(
-#    DEPENDENCIES
-#    sensor_msgs
-# )
 
 find_package(Franka 0.9.0 QUIET)
 if(NOT Franka_FOUND)
@@ -146,8 +124,8 @@ catkin_package(
 ## Build ##
 ###########
 
-set(Mujoco_INCLUDE_DIRS ${PARENT_DIR}/mujocoLib/include)
-file(GLOB LIB_MUJOCO ${PARENT_DIR}/mujocoLib/lib/libmujoco.so.2.3.2)
+set(Mujoco_INCLUDE_DIRS ${GRANDPARENT_DIR}/mujocoLib/include)
+file(GLOB LIB_MUJOCO ${GRANDPARENT_DIR}/mujocoLib/lib/libmujoco.so.2.3.2)
 message(STATUS "parent directory: " ${PARENT_DIR})
 message(STATUS "MuJoCo lib found at: " ${LIB_MUJOCO})
 message(STATUS "Mujoco include directory: " ${Mujoco_INCLUDE_DIRS})

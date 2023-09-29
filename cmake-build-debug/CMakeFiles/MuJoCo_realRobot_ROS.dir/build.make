@@ -53,10 +53,10 @@ RM = /opt/clion-2022.3.3/bin/cmake/linux/x64/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS
+CMAKE_SOURCE_DIR = /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug
+CMAKE_BINARY_DIR = /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug
 
 # Include any dependencies generated for this target.
 include CMakeFiles/MuJoCo_realRobot_ROS.dir/depend.make
@@ -70,32 +70,32 @@ include CMakeFiles/MuJoCo_realRobot_ROS.dir/progress.make
 include CMakeFiles/MuJoCo_realRobot_ROS.dir/flags.make
 
 CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o: CMakeFiles/MuJoCo_realRobot_ROS.dir/flags.make
-CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o: /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/src/demo_vis.cpp
+CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o: /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/src/demo_vis.cpp
 CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o: CMakeFiles/MuJoCo_realRobot_ROS.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o -MF CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o.d -o CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o -c /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/src/demo_vis.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o -MF CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o.d -o CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.o -c /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/src/demo_vis.cpp
 
 CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/src/demo_vis.cpp > CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/src/demo_vis.cpp > CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.i
 
 CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/src/demo_vis.cpp -o CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/src/demo_vis.cpp -o CMakeFiles/MuJoCo_realRobot_ROS.dir/src/demo_vis.cpp.s
 
 CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.o: CMakeFiles/MuJoCo_realRobot_ROS.dir/flags.make
-CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.o: /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/src/MuJoCo_node.cpp
+CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.o: /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/src/MuJoCo_node.cpp
 CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.o: CMakeFiles/MuJoCo_realRobot_ROS.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.o -MF CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.o.d -o CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.o -c /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/src/MuJoCo_node.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.o -MF CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.o.d -o CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.o -c /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/src/MuJoCo_node.cpp
 
 CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/src/MuJoCo_node.cpp > CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/src/MuJoCo_node.cpp > CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.i
 
 CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/src/MuJoCo_node.cpp -o CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/src/MuJoCo_node.cpp -o CMakeFiles/MuJoCo_realRobot_ROS.dir/src/MuJoCo_node.cpp.s
 
 # Object files for target MuJoCo_realRobot_ROS
 MuJoCo_realRobot_ROS_OBJECTS = \
@@ -134,7 +134,7 @@ devel/lib/MuJoCo_realRobot_ROS/MuJoCo_realRobot_ROS: /usr/lib/x86_64-linux-gnu/l
 devel/lib/MuJoCo_realRobot_ROS/MuJoCo_realRobot_ROS: /home/davidrussell/catkin_ws/src/mujocoLib/lib/libmujoco.so.2.3.2
 devel/lib/MuJoCo_realRobot_ROS/MuJoCo_realRobot_ROS: /usr/lib/x86_64-linux-gnu/libyaml-cpp.so.0.6.2
 devel/lib/MuJoCo_realRobot_ROS/MuJoCo_realRobot_ROS: CMakeFiles/MuJoCo_realRobot_ROS.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable devel/lib/MuJoCo_realRobot_ROS/MuJoCo_realRobot_ROS"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable devel/lib/MuJoCo_realRobot_ROS/MuJoCo_realRobot_ROS"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/MuJoCo_realRobot_ROS.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -146,6 +146,6 @@ CMakeFiles/MuJoCo_realRobot_ROS.dir/clean:
 .PHONY : CMakeFiles/MuJoCo_realRobot_ROS.dir/clean
 
 CMakeFiles/MuJoCo_realRobot_ROS.dir/depend:
-	cd /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug/CMakeFiles/MuJoCo_realRobot_ROS.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug/CMakeFiles/MuJoCo_realRobot_ROS.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/MuJoCo_realRobot_ROS.dir/depend
 

@@ -67,8 +67,8 @@ set(MuJoCo_realRobot_ROS_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(MuJoCo_realRobot_ROS_SOURCE_PREFIX /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS)
-  set(MuJoCo_realRobot_ROS_DEVEL_PREFIX /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug/devel)
+  set(MuJoCo_realRobot_ROS_SOURCE_PREFIX /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS)
+  set(MuJoCo_realRobot_ROS_DEVEL_PREFIX /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug/devel)
   set(MuJoCo_realRobot_ROS_INSTALL_PREFIX "")
   set(MuJoCo_realRobot_ROS_PREFIX ${MuJoCo_realRobot_ROS_DEVEL_PREFIX})
 else()

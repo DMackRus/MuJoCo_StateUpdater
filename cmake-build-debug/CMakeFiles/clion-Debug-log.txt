@@ -1,6 +1,6 @@
-/opt/clion-2022.3.3/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS -B /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug
+/opt/clion-2022.3.3/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS -B /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug
 -- Eigen library found
--- Using CATKIN_DEVEL_PREFIX: /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug/devel
+-- Using CATKIN_DEVEL_PREFIX: /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug/devel
 -- Using CMAKE_PREFIX_PATH: /home/davidrussell/catkin_ws/devel;/opt/ros/noetic
 -- This workspace overlays: /home/davidrussell/catkin_ws/devel;/opt/ros/noetic
 -- Found PythonInterp: /usr/bin/python3 (found suitable version "3.8.10", minimum required is "3") 
@@ -9,7 +9,7 @@
 -- Using empy: /usr/lib/python3/dist-packages/em.py
 -- Using CATKIN_ENABLE_TESTING: ON
 -- Call enable_testing()
--- Using CATKIN_TEST_RESULTS_DIR: /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug/test_results
+-- Using CATKIN_TEST_RESULTS_DIR: /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug/test_results
 -- Forcing gtest/gmock from source, though one was otherwise available.
 -- Found gtest sources under '/usr/src/googletest': gtests will be built
 -- Found gmock sources under '/usr/src/googletest': gmock will be built
@@ -43,11 +43,11 @@ CMake Deprecation Warning at /usr/src/googletest/googletest/CMakeLists.txt:56 (c
 -- BUILD_SHARED_LIBS is on
 -- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
 WARNING: Package name "MuJoCo_realRobot_ROS" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
--- parent directory: /home/davidrussell/catkin_ws/src
+-- parent directory: /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt
 -- MuJoCo lib found at: /home/davidrussell/catkin_ws/src/mujocoLib/lib/libmujoco.so.2.3.2
 -- Mujoco include directory: /home/davidrussell/catkin_ws/src/mujocoLib/include
 -- could not find yaml library
--- project include directory: /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/include
+-- project include directory: /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/include
 -- Configuring done
 -- Generating done
--- Build files have been written to: /home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/cmake-build-debug
+-- Build files have been written to: /home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/cmake-build-debug
