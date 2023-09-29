@@ -33,7 +33,7 @@ void setupMujocoWorld(){
     char error[1000];
 
 //    model = mj_loadXML("/home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/Franka-emika-panda-arm/V1/cylinder_pushing.xml", NULL, error, 1000);
-    model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/Franka-emika-panda-arm/V1/cylinder_pushing.xml", NULL, error, 1000);
+    model = mj_loadXML("/home/davidrussell/catkin_ws/src/MuJoCo_realRobot_ROS/mujoco_models/Franka_emika_scenes_V1/cylinder_pushing_heavyClutter_realWorld.xml", NULL, error, 1000);
 
     if(!model) {
         std::cout << "model xml Error" << std::endl;
@@ -109,7 +109,8 @@ int main(int argc, char **argv){
     // cheezit box
     objectPointOffset << 0.0, -0.02738, 0.0;
     objectOffsetList.push_back(objectPointOffset);
-    mujoco_realRobot_ROS = new MuJoCo_realRobot_ROS(argc, argv, 2, "/mocap/rigid_bodies/Jello_0/pose", objectOffsetList);
+    std::vector<std::string> optitrack_names = {"HotChocolate", "Bistro_1", "Bistro_2", "Bistro_3", "Bistro_4", "Bistro_5", "Bistro_6", "Bistro_7"};
+    mujoco_realRobot_ROS = new MuJoCo_realRobot_ROS(argc, argv, optitrack_names, objectOffsetList);
 
     int counter = 0;
 

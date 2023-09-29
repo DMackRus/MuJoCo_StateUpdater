@@ -24,6 +24,9 @@
 
 #include <Eigen/Dense>
 
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
+
 
 using namespace Eigen;
 
@@ -46,7 +49,7 @@ struct objectTracking{
 class MuJoCo_realRobot_ROS{
     public:
         // Constructor
-        MuJoCo_realRobot_ROS(int argc, char **argv, int _numberOfObjects, std::string optitrackTopicName, std::vector<m_point> _objectPosOffsetList);
+        MuJoCo_realRobot_ROS(int argc, char **argv, std::vector<std::string> optitrack_topic_names, std::vector<m_point> _objectPosOffsetList);
         ~MuJoCo_realRobot_ROS();
 
         // -----------------------------------------------------------------------------------
@@ -58,7 +61,7 @@ class MuJoCo_realRobot_ROS{
         void frankaStates_callback(const franka_msgs::FrankaState &msg);
 
         std::vector<ros::Subscriber> optiTrack_sub;
-        void optiTrack_callback(const geometry_msgs::PoseStamped &msg);
+        void optiTrack_callback(const geometry_msgs::PoseStamped::ConstPtr &msg, const std::string& topic_name);
 
         ros::Subscriber robotBase_sub;
         void robotBasePose_callback(const geometry_msgs::PoseStamped &msg);
@@ -79,6 +82,7 @@ class MuJoCo_realRobot_ROS{
     private:
 
         int numberOfObjects;
+        std::vector<std::string> optitrack_objects;
 
         std::vector<objectTracking> objectTrackingList;
         std::vector<m_pose_quat> objectPoseList;
@@ -91,6 +95,8 @@ class MuJoCo_realRobot_ROS{
         ros::Publisher *torque_pub;
 
         std::string currentController;
+
+        int getObjectId(std::string itemName);
 
         // Updates the joint states of the robot
         void updateRobotState(mjModel* m, mjData* d);
