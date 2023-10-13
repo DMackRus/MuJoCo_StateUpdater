@@ -21,7 +21,9 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, std::vector<st
     numberOfObjects = optitrack_topic_names.size();
     optitrack_objects = optitrack_topic_names;
 
-    torque_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("//effort_group_position_controller/command", 1));
+    torque_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_group_effort_controller/command", 1));
+    position_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_group_position_controller/command", 1));
+    velocity_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_velocity_controller/command", 1));
 
     for(int i = 0; i < optitrack_topic_names.size(); i++){
         objectTrackingList.push_back(objectTracking());
@@ -31,6 +33,7 @@ MuJoCo_realRobot_ROS::MuJoCo_realRobot_ROS(int argc, char **argv, std::vector<st
         objectTrackingList[i].parent_id = "/panda_link0";
         objectTrackingList[i].target_id = "/ar_marker_3";
         objectTrackingList[i].mujoco_name = optitrack_topic_names[i];
+        optitrack_objects_found.push_back(false);
     }
 
     // TODO - when class is instantied, have it check what controllers are running and keep track of it
@@ -67,7 +70,7 @@ void MuJoCo_realRobot_ROS::optiTrack_callback(const geometry_msgs::PoseStamped::
     objectPoseList[objectId](5) = msg->pose.orientation.y;
     objectPoseList[objectId](6) = msg->pose.orientation.z;
 
-//    objectCallBackCalled = true;
+    optitrack_objects_found[objectId] = true;
 }
 
 MuJoCo_realRobot_ROS::~MuJoCo_realRobot_ROS(){
@@ -107,20 +110,33 @@ sceneState MuJoCo_realRobot_ROS::returnScene(){
     sceneState world;
 
     ros::spinOnce();
-    std::vector<robot> robots = returnRobotState();
-    std::vector<object> objects = returnObjectsStates();
+    std::vector<robot_real> robots = returnRobotState();
+    std::vector<object_real> objects = returnObjectsStates();
 
     world.robots = robots;
     world.objects = objects;
+
+    // Setting up a callback flag so you can pause execution until all objects found
+    if(!objectCallBackCalled){
+        bool allobjectsFound = true;
+        for(int i = 0; i < optitrack_objects_found.size(); i++){
+            if(!optitrack_objects_found[i]){
+                allobjectsFound = false;
+            }
+        }
+        if(allobjectsFound){
+            objectCallBackCalled = true;
+        }
+    }
 
     return world;
 }
 
 // TODO - should probably add abaility for multiple robots, which should be specified by constructo call
-std::vector<robot> MuJoCo_realRobot_ROS::returnRobotState() {
+std::vector<robot_real> MuJoCo_realRobot_ROS::returnRobotState() {
 
-    std::vector<robot> robots;
-    robots.push_back(robot());
+    std::vector<robot_real> robots;
+    robots.push_back(robot_real());
     robots[0].name = "panda";
 
     for(int i = 0; i < NUM_JOINTS; i++){
@@ -140,12 +156,12 @@ std::vector<robot> MuJoCo_realRobot_ROS::returnRobotState() {
     return robots;
 }
 
-std::vector<object> MuJoCo_realRobot_ROS::returnObjectsStates(){
+std::vector<object_real> MuJoCo_realRobot_ROS::returnObjectsStates(){
     tf::StampedTransform transform;
-    std::vector<object> objects;
+    std::vector<object_real> objects;
     if(OPTITRACK){
         for(int i = 0; i < numberOfObjects; i++){
-            objects.push_back(object());
+            objects.push_back(object_real());
             objects[i].name = optitrack_objects[i];
             // x, y, z
             objects[i].positions[0] = objectPoseList[i](0);
@@ -241,8 +257,9 @@ bool MuJoCo_realRobot_ROS::switchController(std::string controllerName){
 
 void MuJoCo_realRobot_ROS::sendTorquesToRealRobot(double torques[]){
     std_msgs::Float64MultiArray  desired_torques;
-    double jointSpeedLimits[NUM_JOINTS] = {0.5, 0.5, 0.5, 0.5, 1, 1.5, 1.5};
+    double jointSpeedLimits[NUM_JOINTS] = {0.7, 0.7, 0.7, 0.7, 1.5, 1.5, 1.5};
     bool jointVelsSafe = true;
+    std::cout << "sending torques \n";
 
     if(!haltRobot){
         std::cout << "torques Sent: " << torques[0] << ", " << torques[1] << ", " << torques[2] << ", " << torques[3] << ", " << torques[4] << ", " << torques[5] << ", " << torques[6] << ", " << std::endl;
@@ -278,7 +295,7 @@ void MuJoCo_realRobot_ROS::sendTorquesToRealRobot(double torques[]){
 
 void MuJoCo_realRobot_ROS::sendPositionsToRealRobot(double positions[]){
     std_msgs::Float64MultiArray  desired_positions;
-    double jointSpeedLimits[NUM_JOINTS] = {0.6, 0.5, 0.8, 0.5, 1, 2, 3};
+    double jointSpeedLimits[NUM_JOINTS] = {0.7, 0.7, 0.7, 0.7, 1.5, 1.5, 1.5};
     //double torqueLimits[NUM_JOINTS] = {10.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0};
 
     if(!haltRobot){
@@ -302,8 +319,7 @@ void MuJoCo_realRobot_ROS::sendPositionsToRealRobot(double positions[]){
             desired_positions.data.push_back(positions[i]);
 
         }
-        //std::cout << "torque 0: " << desired_torques.data[0] << std::endl;
-        torque_pub->publish(desired_positions);
+        position_pub->publish(desired_positions);
     }
     else{
         // dont publish anything
@@ -313,6 +329,40 @@ void MuJoCo_realRobot_ROS::sendPositionsToRealRobot(double positions[]){
     ros::spinOnce();
 }
 
+void MuJoCo_realRobot_ROS::sendVelocitiesToRealRobot(double velocities[]){
+    std_msgs::Float64MultiArray  desired_velocities;
+    double jointSpeedLimits[NUM_JOINTS] = {0.7, 0.7, 0.7, 0.7, 1.5, 1.5, 1.5};
+
+    if(!haltRobot){
+        //std::cout << "torques Sent: " << torques[0] << ", " << torques[1] << ", " << torques[2] << ", " << torques[3] << ", " << torques[4] << ", " << torques[5] << ", " << torques[6] << ", " << std::endl;
+        for(int i = 0; i < NUM_JOINTS; i++){
+
+            if(jointSpeeds[i] > jointSpeedLimits[i]){
+                std::cout << "safety vel triggered" << std::endl;
+                std::cout << "joint " << i <<  " speed: " << jointSpeeds[i] << std::endl;
+                std::cout << "joints at safety trigger: " << jointVals[i] << std::endl;
+                haltRobot = true;
+            }
+
+            if(jointSpeeds[i] < -jointSpeedLimits[i]){
+                std::cout << "safety vel triggered" << std::endl;
+                std::cout << "joint " << i <<  " speed: " << jointSpeeds[i] << std::endl;
+                std::cout << "joints at safety trigger: " << jointVals[i] << std::endl;
+                haltRobot = true;
+            }
+
+            desired_velocities.data.push_back(velocities[i]);
+
+        }
+        velocity_pub->publish(desired_velocities);
+    }
+    else{
+        // dont publish anything
+
+    }
+
+    ros::spinOnce();
+}
 
 // void MuJoCo_realRobot_ROS::resetTorqueControl(){
 //     haltRobot = false;

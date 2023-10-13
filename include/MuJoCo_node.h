@@ -45,12 +45,12 @@ struct objectTracking{
     std::string mujoco_name;
 };
 
-struct robot{
+struct robot_real{
     std::string name;
     std::vector<double> joint_positions;
 };
 
-struct object{
+struct object_real{
     std::string name;
     double positions[3];
     // x, y ,z, w
@@ -58,8 +58,8 @@ struct object{
 };
 
 struct sceneState{
-    std::vector<robot> robots;
-    std::vector<object> objects;
+    std::vector<robot_real> robots;
+    std::vector<object_real> objects;
 };
 
 class MuJoCo_realRobot_ROS{
@@ -89,6 +89,7 @@ class MuJoCo_realRobot_ROS{
         bool switchController(std::string controllerName);
         void sendTorquesToRealRobot(double torques[]);
         void sendPositionsToRealRobot(double positions[]);
+        void sendVelocitiesToRealRobot(double velocities[]);
 
         void resetTorqueControl();
 
@@ -99,6 +100,7 @@ class MuJoCo_realRobot_ROS{
 
         int numberOfObjects;
         std::vector<std::string> optitrack_objects;
+        std::vector<bool> optitrack_objects_found;
 
         std::vector<objectTracking> objectTrackingList;
         std::vector<m_pose_quat> objectPoseList;
@@ -108,16 +110,20 @@ class MuJoCo_realRobot_ROS{
 
         ros::NodeHandle *n;
         tf::TransformListener *listener;
+
+        // Different publishers for different controllers
         ros::Publisher *torque_pub;
+        ros::Publisher *position_pub;
+        ros::Publisher *velocity_pub;
 
         std::string currentController;
 
         int getObjectId(std::string itemName);
 
         // Updates the joint states of the robot
-        std::vector<robot> returnRobotState();
+        std::vector<robot_real> returnRobotState();
         // Loops through all known objects in the scene and updates their position and rotation
-        std::vector<object> returnObjectsStates();
+        std::vector<object_real> returnObjectsStates();
 //        m_pose_quat filterObjectHistory(std::vector<m_pose_quat> objectPoses);
 
         // Sets the qpos value for the corresponding body id to the specified value

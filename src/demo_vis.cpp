@@ -124,7 +124,19 @@ int main(int argc, char **argv){
     std::vector<std::string> optitrack_names = {"HotChocolate", "Bistro_1", "Bistro_2", "Bistro_3", "Bistro_4", "Bistro_5", "Bistro_6", "Bistro_7"};
     mujoco_realRobot_ROS = new MuJoCo_realRobot_ROS(argc, argv, optitrack_names);
 
-    //mujoco_realRobot_ROS->switchController("effort_group_effort_controller");
+    mujoco_realRobot_ROS->switchController("effort_group_position_controller");
+
+    render();
+    // Get starting robot joint values
+    sceneState world = mujoco_realRobot_ROS->returnScene();
+    std::vector<double> robot_joints = world.robots[0].joint_positions;
+
+//    double robot_pos_command[7] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+//    for(int i = 0; i < 7; i++){
+//        robot_pos_command[i] = robot_joints[i];
+//    }
+//
+//    robot_pos_command[0] += 0.3;
 
     while(ros::ok()){
 
@@ -133,6 +145,7 @@ int main(int argc, char **argv){
 //            double torques[7] = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 //            mujoco_realRobot_ROS->sendTorquesToRealRobot(torques);
 //        }
+        //mujoco_realRobot_ROS->sendPositionsToRealRobot(robot_pos_command);
 
         render();
     }
