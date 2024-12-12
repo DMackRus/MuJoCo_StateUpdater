@@ -129,13 +129,14 @@ scene_state MuJoCoStateUpdater::ReturnScene(){
     return world;
 }
 
-// TODO - should probably add abaility for multiple robots, which should be specified by constructo call
+// TODO - should probably add abaility for multiple robots, which should be specified by constructor call
 std::vector<robot_real> MuJoCoStateUpdater::ReturnRobotState() {
 
     std::vector<robot_real> robots;
     robots.push_back(robot_real());
     robots[0].name = "panda";
 
+    // Here are some specific joint offsets between franka model in MuJoCo and actual joints on real robot
     for(int i = 0; i < NUM_JOINTS; i++){
         if(i == 5){
             robots[0].joint_positions.push_back(joint_positions[i] - PI / 2);
@@ -148,7 +149,6 @@ std::vector<robot_real> MuJoCoStateUpdater::ReturnRobotState() {
         }
 
     }
-
 
     return robots;
 }
