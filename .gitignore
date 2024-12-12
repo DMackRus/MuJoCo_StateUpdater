@@ -52,3 +52,4 @@ CATKIN_IGNORE
 
 /mujoco_models
 /cmake-build-debug/*
+/cmake-build-release/*
