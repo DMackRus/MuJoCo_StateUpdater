@@ -29,7 +29,7 @@ GLFWwindow *window;              // GLFW window
 mjModel *model;
 mjData* mdata_real;
 
-MuJoCo_realRobot_ROS* mujoco_realRobot_ROS;
+MuJoCoStateUpdater* mujoco_realRobot_ROS;
 
 void set_BodyPosition(mjModel *m, mjData* d, int bodyId, double position[3]);
 void set_qPosVal(mjModel *m, mjData *d, int bodyId, bool freeJoint, int freeJntAxis, double val);
@@ -39,7 +39,7 @@ void setupMujocoWorld(){
     char error[1000];
 
 //    model = mj_loadXML("/home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/Franka-emika-panda-arm/V1/cylinder_pushing.xml", NULL, error, 1000);
-    model = mj_loadXML("/home/davidrussell/catkin_ws/src/realRobotExperiments_TrajOpt/MuJoCo_realRobot_ROS/mujoco_models/Franka_emika_scenes_V1/cylinder_pushing_heavyClutter_realWorld.xml", NULL, error, 1000);
+    model = mj_loadXML("/home/david/mujoco_models/Franka_panda/scene.xml", NULL, error, 1000);
 
     if(!model) {
         std::cout << "model xml Error" << std::endl;
@@ -84,7 +84,7 @@ void setupMujocoWorld(){
 
 void render(){
 
-    sceneState world = mujoco_realRobot_ROS->returnScene();
+    scene_state world = mujoco_realRobot_ROS->ReturnScene();
 
     for(int i = 0; i < world.robots.size(); i++){
         for(int j = 0; j < world.robots[i].joint_positions.size(); j++){
@@ -120,15 +120,15 @@ int main(int argc, char **argv){
     setupMujocoWorld();
 
     // Create an instance of 
-    // MuJoCo_realRobot_ROS mujocoController(true, &n);
-    std::vector<std::string> optitrack_names = {"HotChocolate", "Bistro_1", "Bistro_2", "Bistro_3", "Bistro_4", "Bistro_5", "Bistro_6", "Bistro_7"};
-    mujoco_realRobot_ROS = new MuJoCo_realRobot_ROS(argc, argv, optitrack_names);
+    // MuJoCoStateUpdater mujocoController(true, &n);
+    std::vector<std::string> optitrack_names = {};
+    mujoco_realRobot_ROS = new MuJoCoStateUpdater(argc, argv, optitrack_names);
 
-    mujoco_realRobot_ROS->switchController("effort_group_position_controller");
+    mujoco_realRobot_ROS->SwitchController("effort_group_position_controller");
 
     render();
     // Get starting robot joint values
-    sceneState world = mujoco_realRobot_ROS->returnScene();
+    scene_state world = mujoco_realRobot_ROS->ReturnScene();
     std::vector<double> robot_joints = world.robots[0].joint_positions;
 
 //    double robot_pos_command[7] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -225,7 +225,6 @@ void windowCloseCallback(GLFWwindow * /*window*/) {
     // free MuJoCo model and data, deactivate
     mj_deleteData(mdata_real);
     mj_deleteModel(model);
-    mj_deactivate();
 }
 
 void set_BodyPosition(mjModel* m, mjData* d, int bodyId, double position[3]){

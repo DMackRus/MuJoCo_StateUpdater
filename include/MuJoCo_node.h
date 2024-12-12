@@ -18,15 +18,10 @@
 #include "controller_manager_msgs/SwitchController.h"
 #include "controller_manager_msgs/LoadController.h"
 
-// MuJoCo Simulator
-//#include "mujoco.h"
-//#include <GLFW/glfw3.h>
-
 #include <Eigen/Dense>
 
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
-
 
 using namespace Eigen;
 
@@ -39,7 +34,7 @@ typedef Eigen::Matrix<double, 7, 1> m_pose_quat;
 #define PI                  3.14159265359
 #define OPTITRACK           1
 
-struct objectTracking{
+struct object_tracking{
     std::string parent_id;
     std::string target_id;
     std::string mujoco_name;
@@ -57,52 +52,59 @@ struct object_real{
     double quaternion[4];
 };
 
-struct sceneState{
+struct scene_state{
     std::vector<robot_real> robots;
     std::vector<object_real> objects;
 };
 
-class MuJoCo_realRobot_ROS{
+class MuJoCoStateUpdater{
     public:
         // Constructor
-        MuJoCo_realRobot_ROS(int argc, char **argv, std::vector<std::string> optitrack_topic_names);
-        ~MuJoCo_realRobot_ROS();
+        MuJoCoStateUpdater(int argc, char **argv, std::vector<std::string> optitrack_topic_names);
+        ~MuJoCoStateUpdater();
 
         // -----------------------------------------------------------------------------------
         // ROS subscribers
-        ros::Subscriber jointStates_sub;
-        void jointStates_callback(const sensor_msgs::JointState &msg);
+        ros::Subscriber joint_states_sub;
+        void JointStates_callback(const sensor_msgs::JointState &msg);
 
-        ros::Subscriber frankaStates_sub;
-        void frankaStates_callback(const franka_msgs::FrankaState &msg);
+        ros::Subscriber franka_states_sub;
+        void FrankaStates_callback(const franka_msgs::FrankaState &msg);
 
-        std::vector<ros::Subscriber> optiTrack_sub;
-        void optiTrack_callback(const geometry_msgs::PoseStamped::ConstPtr &msg, const std::string& topic_name);
+        std::vector<ros::Subscriber> optitrack_sub;
+        void OptiTrack_callback(const geometry_msgs::PoseStamped::ConstPtr &msg, const std::string& topic_name);
 
-        ros::Subscriber robotBase_sub;
-        void robotBasePose_callback(const geometry_msgs::PoseStamped &msg);
+        ros::Subscriber robot_base_sub;
+        void RobotBasePose_callback(const geometry_msgs::PoseStamped &msg);
         // -----------------------------------------------------------------------------------
 
         // Return a struct representing the state of the scene
-        sceneState returnScene();
+        scene_state ReturnScene();
 
-        bool switchController(std::string controllerName);
-        void sendTorquesToRealRobot(double torques[]);
-        void sendPositionsToRealRobot(double positions[]);
-        void sendVelocitiesToRealRobot(double velocities[]);
+        bool SwitchController(std::string controllerName);
+//        void sendTorquesToRealRobot(double torques[]);
+//        void sendPositionsToRealRobot(double positions[]);
+//        void sendVelocitiesToRealRobot(double velocities[]);
+//
+//        void resetTorqueControl();
 
-        void resetTorqueControl();
-
-        bool jointsCallBackCalled;
-        bool objectCallBackCalled;
+        bool object_callback_called;
 
     private:
 
-        int numberOfObjects;
+        // Gets the ID of an opitrack tracked object by string name
+        int GetObjectID(std::string item_name);
+
+        // Updates the joint states of the robot
+        std::vector<robot_real> ReturnRobotState();
+        // Loops through all known objects in the scene and updates their position and rotation
+        std::vector<object_real> ReturnObjectsState();
+
+        int number_of_objects;
         std::vector<std::string> optitrack_objects;
         std::vector<bool> optitrack_objects_found;
 
-        std::vector<objectTracking> objectTrackingList;
+        std::vector<object_tracking> objectTrackingList;
         std::vector<m_pose_quat> objectPoseList;
         std::vector<m_point> objectPosOffsetList;
 
@@ -116,22 +118,11 @@ class MuJoCo_realRobot_ROS{
         ros::Publisher *position_pub;
         ros::Publisher *velocity_pub;
 
-        std::string currentController;
+        std::string current_controller;
 
-        int getObjectId(std::string itemName);
+        // TODO - Why do we assume 7 here, should be programatic??
+        double joint_positions[7];
+        double joint_velocities[7];
 
-        // Updates the joint states of the robot
-        std::vector<robot_real> returnRobotState();
-        // Loops through all known objects in the scene and updates their position and rotation
-        std::vector<object_real> returnObjectsStates();
-//        m_pose_quat filterObjectHistory(std::vector<m_pose_quat> objectPoses);
-
-        // Sets the qpos value for the corresponding body id to the specified value
-
-
-        double jointVals[7];
-        double jointSpeeds[7];
-
-        bool haltRobot = false;
-        
+        bool halt_robot = false;
 };

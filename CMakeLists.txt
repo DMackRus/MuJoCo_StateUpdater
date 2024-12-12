@@ -1,14 +1,16 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(MuJoCo_realRobot_ROS)
+project(MuJoCo_StateUpdater)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Get nice variable names for one and two directories above this one
 get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
 get_filename_component(GRANDPARENT_DIR ${PARENT_DIR}/.. ABSOLUTE)
+
+set(MUJOCO_DIR    "$ENV{MJ_HOME}")
 
 set(Eigen3_FOUND True)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
@@ -18,6 +20,13 @@ if (TARGET Eigen3::Eigen)
 else()
     message(STATUS "could not find eigen library")
 endif (TARGET Eigen3::Eigen)
+
+set(Mujoco_INCLUDE_DIRS ${MUJOCO_DIR}/include/mujoco)
+message(STATUS "Mujoco directory: " ${MUJOCO_DIR})
+file(GLOB LIB_MUJOCO "${MUJOCO_DIR}/lib/libmujoco.so.*")
+message(STATUS "parent directory: " ${PARENT_DIR})
+message(STATUS "MuJoCo lib found at: " ${LIB_MUJOCO})
+message(STATUS "Mujoco include directory: " ${Mujoco_INCLUDE_DIRS})
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -111,7 +120,7 @@ endif()
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
  INCLUDE_DIRS include
-# LIBRARIES MuJoCo_realRobot_ROS
+# LIBRARIES MuJoCoStateUpdater
  CATKIN_DEPENDS roscpp
                 rospy
                 std_msgs
@@ -124,11 +133,13 @@ catkin_package(
 ## Build ##
 ###########
 
-set(Mujoco_INCLUDE_DIRS ${GRANDPARENT_DIR}/mujocoLib/include)
-file(GLOB LIB_MUJOCO ${GRANDPARENT_DIR}/mujocoLib/lib/libmujoco.so.2.3.2)
+#set(Mujoco_INCLUDE_DIRS ${GRANDPARENT_DIR}/mujocoLib/include)
+#file(GLOB LIB_MUJOCO ${GRANDPARENT_DIR}/mujocoLib/lib/libmujoco.so.2.3.2)
+
 message(STATUS "parent directory: " ${PARENT_DIR})
 message(STATUS "MuJoCo lib found at: " ${LIB_MUJOCO})
 message(STATUS "Mujoco include directory: " ${Mujoco_INCLUDE_DIRS})
+
 
 find_package(yaml-cpp REQUIRED)
 if (TARGET yaml-cpp::yaml-cpp)
@@ -157,6 +168,11 @@ add_dependencies(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${Franka_LIBRARIES}
   ${catkin_LIBRARIES}
+)
+
+include_directories(
+        include
+        ${MUJOCO_DIR}/include
 )
 
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
@@ -218,7 +234,7 @@ target_link_libraries(${PROJECT_NAME} Eigen3::Eigen ${LIB_MUJOCO} -lglfw libGL.s
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/MuJoCo_realRobot_ROS.cpp
+#   src/${PROJECT_NAME}/MuJoCoStateUpdater.cpp
 # )
 
 ## Add cmake target dependencies of the library
