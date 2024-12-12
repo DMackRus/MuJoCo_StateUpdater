@@ -51,5 +51,9 @@ qtcreator-*
 CATKIN_IGNORE
 
 /mujoco_models
+
 /cmake-build-debug/*
 /cmake-build-release/*
+
+# Jet brains specific idea folder
+/.idea
