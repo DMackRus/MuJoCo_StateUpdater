@@ -67,10 +67,6 @@ MuJoCoStateUpdater::MuJoCoStateUpdater(int argc, char **argv, std::vector<std::s
     number_of_objects = optitrack_topic_names.size();
     optitrack_objects = optitrack_topic_names;
 
-//    torque_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_group_effort_controller/command", 1));
-//    position_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_group_position_controller/command", 1));
-//    velocity_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_velocity_controller/command", 1));
-
     for(int i = 0; i < optitrack_topic_names.size(); i++){
         objectTrackingList.push_back(object_tracking());
         objectPoseList.push_back(pose());
@@ -80,9 +76,6 @@ MuJoCoStateUpdater::MuJoCoStateUpdater(int argc, char **argv, std::vector<std::s
         objectTrackingList[i].mujoco_name = optitrack_topic_names[i];
         optitrack_objects_found.push_back(false);
     }
-
-    // TODO - when class is instantied, have it check what controllers are running and keep track of it
-    current_controller = "position_joint_trajectory_controller";
 
     object_callback_called = false;
 
@@ -101,7 +94,6 @@ int MuJoCoStateUpdater::GetObjectID(std::string item_name){
 // order of poses is {x, y, z, w, wx, wy, wz}
 void MuJoCoStateUpdater::OptiTrack_callback(const geometry_msgs::PoseStamped::ConstPtr &msg,
                                             const std::string &topic_name) {
-    pose objectPose;
     int objectId = GetObjectID(topic_name);
 
 //    std::cout << "Robot base: " << robotBase(0) << " " << robotBase(1) << " " << robotBase(2) << "\n";
@@ -145,7 +137,7 @@ void MuJoCoStateUpdater::RobotBasePose_callback(const geometry_msgs::PoseStamped
     robotBase.x = msg.pose.position.x;
     robotBase.y = msg.pose.position.y;
     robotBase.z = msg.pose.position.z;
-//
+
 //    robotBase(3) = msg.pose.orientation.w;
 //    robotBase(4) = msg.pose.orientation.x;
 //    robotBase(5) = msg.pose.orientation.y;
@@ -187,15 +179,8 @@ std::vector<robot_real> MuJoCoStateUpdater::ReturnRobotState() {
 
     // Here are some specific joint offsets between franka model in MuJoCo and actual joints on real robot
     for(int i = 0; i < NUM_JOINTS; i++){
-        if(i == 5){
-            robots[0].joint_positions.push_back(joint_positions[i] - PI / 2);
-        }
-        else if(i == 6){
-            robots[0].joint_positions.push_back(joint_positions[i] - PI / 4);
-        }
-        else{
-            robots[0].joint_positions.push_back(joint_positions[i]);
-        }
+        robots[0].joint_positions.push_back(joint_positions[i]);
+
         robots[0].joint_velocities.push_back(joint_velocities[i]);
     }
 
@@ -205,7 +190,6 @@ std::vector<robot_real> MuJoCoStateUpdater::ReturnRobotState() {
 std::vector<object_real> MuJoCoStateUpdater::ReturnObjectsState(){
     tf::StampedTransform transform;
     std::vector<object_real> objects;
-
 
     for(int i = 0; i < number_of_objects; i++){
         objects.push_back(object_real());
@@ -264,148 +248,3 @@ std::vector<object_real> MuJoCoStateUpdater::ReturnObjectsState(){
 
     return objects;
 }
-
-// TODO - check loaded controllers, only load controller if required.
-//bool MuJoCoStateUpdater::SwitchController(std::string controllerName){
-//    ros::ServiceClient load_controller = n->serviceClient<controller_manager_msgs::LoadController>("/controller_manager/load_controller");
-//
-//    controller_manager_msgs::LoadController load_controller_req;
-//    load_controller_req.request.name = controllerName;
-//    load_controller.call(load_controller_req);
-//
-//    ros::ServiceClient switch_controller = n->serviceClient<controller_manager_msgs::SwitchController>("/controller_manager/switch_controller");
-//
-//    std::vector<std::string> start_controller;
-//    start_controller.push_back(controllerName);
-//    std::vector<std::string> stop_controller;
-//    stop_controller.push_back("position_joint_trajectory_controller");
-//    controller_manager_msgs::SwitchController switch_controller_req;
-//    switch_controller_req.request.start_controllers = start_controller;
-//    switch_controller_req.request.stop_controllers = stop_controller;
-//    switch_controller_req.request.strictness = 1;
-//    switch_controller_req.request.start_asap = false;
-//    ros::service::waitForService("/controller_manager/switch_controller", ros::Duration(5));
-//    switch_controller.call(switch_controller_req);
-//    if (switch_controller_req.response.ok){
-//        ROS_INFO_STREAM("Controller switch correctly");
-//    }
-//    else{
-//        ROS_ERROR_STREAM("Error occured trying to switch controller");
-//        return 0;
-//    }
-//
-//    return switch_controller_req.response.ok;
-//}
-
-//void MuJoCoStateUpdater::sendTorquesToRealRobot(double torques[]){
-//    std_msgs::Float64MultiArray  desired_torques;
-//    double jointSpeedLimits[NUM_JOINTS] = {0.7, 0.7, 0.7, 0.7, 1.5, 1.5, 1.5};
-//    bool jointVelsSafe = true;
-//    std::cout << "sending torques \n";
-//
-//    if(!halt_robot){
-//        std::cout << "torques Sent: " << torques[0] << ", " << torques[1] << ", " << torques[2] << ", " << torques[3] << ", " << torques[4] << ", " << torques[5] << ", " << torques[6] << ", " << std::endl;
-//        for(int i = 0; i < NUM_JOINTS; i++){
-//            double safeTorque = torques[i];
-//
-//            if(joint_velocities[i] > jointSpeedLimits[i]){
-//                std::cout << "joint " << i << " speed: " << joint_velocities[i] << std::endl;
-//                std::cout << "safety vel triggered" << std::endl;
-//                halt_robot = true;
-//                safeTorque = 0.0;
-//            }
-//
-//            if(joint_velocities[i] < -jointSpeedLimits[i]){
-//                std::cout << "joint " << i << " speed: " << joint_velocities[i] << std::endl;
-//                std::cout << "safety vel triggered" << std::endl;
-//                halt_robot = true;
-//                safeTorque = 0.0;
-//            }
-//
-//            desired_torques.data.push_back(safeTorque);
-//        }
-//
-//        torque_pub->publish(desired_torques);
-//    }
-//    else{
-//        for(int i = 0; i < NUM_JOINTS; i++){
-//            desired_torques.data.push_back(0.0);
-//        }
-//        torque_pub->publish(desired_torques);
-//    }
-//}
-
-//void MuJoCoStateUpdater::sendPositionsToRealRobot(double positions[]){
-//    std_msgs::Float64MultiArray  desired_positions;
-//    double jointSpeedLimits[NUM_JOINTS] = {0.7, 0.7, 0.7, 0.7, 1.5, 1.5, 1.5};
-//    //double torqueLimits[NUM_JOINTS] = {10.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0};
-//
-//    if(!halt_robot){
-//        //std::cout << "torques Sent: " << torques[0] << ", " << torques[1] << ", " << torques[2] << ", " << torques[3] << ", " << torques[4] << ", " << torques[5] << ", " << torques[6] << ", " << std::endl;
-//        for(int i = 0; i < NUM_JOINTS; i++){
-//
-//            if(joint_velocities[i] > jointSpeedLimits[i]){
-//                std::cout << "safety vel triggered" << std::endl;
-//                std::cout << "joint " << i << " speed: " << joint_velocities[i] << std::endl;
-//                std::cout << "joints at safety trigger: " << joint_positions[i] << std::endl;
-//                halt_robot = true;
-//            }
-//
-//            if(joint_velocities[i] < -jointSpeedLimits[i]){
-//                std::cout << "safety vel triggered" << std::endl;
-//                std::cout << "joint " << i << " speed: " << joint_velocities[i] << std::endl;
-//                std::cout << "joints at safety trigger: " << joint_positions[i] << std::endl;
-//                halt_robot = true;
-//            }
-//
-//            desired_positions.data.push_back(positions[i]);
-//
-//        }
-//        position_pub->publish(desired_positions);
-//    }
-//    else{
-//        // dont publish anything
-//
-//    }
-//
-//    ros::spinOnce();
-//}
-
-//void MuJoCoStateUpdater::sendVelocitiesToRealRobot(double velocities[]){
-//    std_msgs::Float64MultiArray  desired_velocities;
-//    double jointSpeedLimits[NUM_JOINTS] = {0.7, 0.7, 0.7, 0.7, 1.5, 1.5, 1.5};
-//
-//    if(!halt_robot){
-//        //std::cout << "torques Sent: " << torques[0] << ", " << torques[1] << ", " << torques[2] << ", " << torques[3] << ", " << torques[4] << ", " << torques[5] << ", " << torques[6] << ", " << std::endl;
-//        for(int i = 0; i < NUM_JOINTS; i++){
-//
-//            if(joint_velocities[i] > jointSpeedLimits[i]){
-//                std::cout << "safety vel triggered" << std::endl;
-//                std::cout << "joint " << i << " speed: " << joint_velocities[i] << std::endl;
-//                std::cout << "joints at safety trigger: " << joint_positions[i] << std::endl;
-//                halt_robot = true;
-//            }
-//
-//            if(joint_velocities[i] < -jointSpeedLimits[i]){
-//                std::cout << "safety vel triggered" << std::endl;
-//                std::cout << "joint " << i << " speed: " << joint_velocities[i] << std::endl;
-//                std::cout << "joints at safety trigger: " << joint_positions[i] << std::endl;
-//                halt_robot = true;
-//            }
-//
-//            desired_velocities.data.push_back(velocities[i]);
-//
-//        }
-//        velocity_pub->publish(desired_velocities);
-//    }
-//    else{
-//        // dont publish anything
-//
-//    }
-//
-//    ros::spinOnce();
-//}
-
-// void MuJoCoStateUpdater::resetTorqueControl(){
-//     halt_robot = false;
-// }

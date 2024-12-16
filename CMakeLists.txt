@@ -10,8 +10,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
 get_filename_component(GRANDPARENT_DIR ${PARENT_DIR}/.. ABSOLUTE)
 
-set(MUJOCO_DIR    "$ENV{MJ_HOME}")
-
 set(Eigen3_FOUND True)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 if (TARGET Eigen3::Eigen)
@@ -21,6 +19,7 @@ else()
     message(STATUS "could not find eigen library")
 endif (TARGET Eigen3::Eigen)
 
+set(MUJOCO_DIR    "$ENV{MJ_HOME}")
 set(Mujoco_INCLUDE_DIRS ${MUJOCO_DIR}/include/mujoco)
 message(STATUS "Mujoco directory: " ${MUJOCO_DIR})
 file(GLOB LIB_MUJOCO "${MUJOCO_DIR}/lib/libmujoco.so.*")

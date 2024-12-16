@@ -9,6 +9,8 @@
 #include "MuJoCo_StateUpdater/Robot.h"
 #include "MuJoCo_StateUpdater/RigidBody.h"
 
+#define PI 3.14159265359
+
 // -----------------------------------------------------------------------------------------
 // Keyboard + mouse callbacks + variables
 void scroll(GLFWwindow* window, double xoffset, double yoffset);
@@ -145,6 +147,10 @@ void SceneState_callback(const MuJoCo_StateUpdater::Scene &msg){
             world.robots[i].joint_positions[j] = msg.robots[i].joint_positions[j];
             world.robots[i].joint_velocities[j] = msg.robots[i].joint_velocities[j];
         }
+
+        // Apply joint offsets due to difference between my current panda model and real panda
+        world.robots[i].joint_positions[5] -= PI / 2;
+        world.robots[i].joint_positions[6] -= PI / 4;
     }
 
     for(int i = 0; i < msg.objects.size(); i++){

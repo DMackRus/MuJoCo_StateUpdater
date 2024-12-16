@@ -19,10 +19,6 @@
 #include "MuJoCo_StateUpdater/Robot.h"
 #include "MuJoCo_StateUpdater/RigidBody.h"
 
-// Controller includes work straight away when including ROS, nothing needed extra in the cmake
-//#include "controller_manager_msgs/SwitchController.h"
-//#include "controller_manager_msgs/LoadController.h"
-
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 
@@ -78,7 +74,7 @@ class MuJoCoStateUpdater{
         ros::Subscriber joint_states_sub;
         void JointStates_callback(const sensor_msgs::JointState &msg);
 
-        ros::Subscriber franka_states_sub;
+//        ros::Subscriber franka_states_sub;
 //        void FrankaStates_callback(const franka_msgs::FrankaState &msg);
 
         std::vector<ros::Subscriber> optitrack_sub;
@@ -93,13 +89,6 @@ class MuJoCoStateUpdater{
 
         // Return a struct representing the state of the scene
         scene_state ReturnScene();
-
-//        bool SwitchController(std::string controllerName);
-//        void sendTorquesToRealRobot(double torques[]);
-//        void sendPositionsToRealRobot(double positions[]);
-//        void sendVelocitiesToRealRobot(double velocities[]);
-//
-//        void resetTorqueControl();
 
         bool object_callback_called;
 
@@ -125,18 +114,7 @@ class MuJoCoStateUpdater{
         ros::NodeHandle *n;
         tf::TransformListener *listener;
 
-        // Different publishers for different controllers
-//        ros::Publisher *torque_pub;
-//        ros::Publisher *position_pub;
-//        ros::Publisher *velocity_pub;
-
-        std::string current_controller;
-
         // TODO - Why do we assume 7 here, should be programatic??
         double joint_positions[7] = {0, 0, 0, 0, 0, 0, 0};
         double joint_velocities[7] = {0, 0, 0, 0, 0, 0, 0};
-
-        bool halt_robot = false;
-
-
 };
