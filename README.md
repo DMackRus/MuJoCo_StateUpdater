@@ -45,3 +45,4 @@ Build packages with `catkin_make` first.
 - [ ] Make the package more programmatic, arguments for what robots / objects to track and what sensors to use.
 - [ ] Add support for more sensors (realSense for example)
 - [ ] Beautify the README
+- [ ] Velocity tracking of objects
