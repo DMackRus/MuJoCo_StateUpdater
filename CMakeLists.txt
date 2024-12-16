@@ -79,6 +79,18 @@ endif()
 #   Message2.msg
 # )
 
+add_message_files(
+        FILES
+        Robot.msg
+        RigidBody.msg
+        Scene.msg
+)
+
+generate_messages(
+        DEPENDENCIES
+        std_msgs
+)
+
 ## Generate services in the 'srv' folder
 # add_service_files(
 #   FILES
@@ -120,8 +132,8 @@ endif()
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
  INCLUDE_DIRS include
-# LIBRARIES MuJoCoStateUpdater
- CATKIN_DEPENDS roscpp
+ CATKIN_DEPENDS message_runtime
+                roscpp
                 rospy
                 std_msgs
                 sensor_msgs
@@ -153,76 +165,64 @@ set(PROJECT_INCLUDE_DIR ${PARENT_DIR}/${PROJECT_NAME}/include)
 message(STATUS "project include directory: " ${PROJECT_INCLUDE_DIR})
 
 #######################################################################################################
-##                              DEMO  Visualisation code        
+##                              MuJoCo State updater Node
 #######################################################################################################
 
 add_executable(${PROJECT_NAME}
-  src/demo_vis.cpp
-  src/MuJoCo_node.cpp
-)
+        src/MuJoCoStatusUpdater.cpp
+        )
 
 add_dependencies(${PROJECT_NAME}
-  ${catkin_EXPORTED_TARGETS}
-)
+        ${catkin_EXPORTED_TARGETS}
+        )
 
 target_link_libraries(${PROJECT_NAME}
-  ${Franka_LIBRARIES}
-  ${catkin_LIBRARIES}
-)
-
-include_directories(
-        include
-        ${MUJOCO_DIR}/include
-)
+        ${Franka_LIBRARIES}
+        ${catkin_LIBRARIES}
+        )
 
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
+        ${Mujoco_INCLUDE_DIRS}
+        ${PROJECT_INCLUDE_DIR}
+        ${Franka_INCLUDE_DIRS}
+        ${catkin_INCLUDE_DIRS}
+        )
+
+target_link_libraries(${PROJECT_NAME})
+
+#######################################################################################################
+##                              DEMO  Visualisation code
+#######################################################################################################
+
+add_executable(demo_vis
+        src/demo_vis.cpp
+        )
+
+add_dependencies(demo_vis
+        ${catkin_EXPORTED_TARGETS}
+        )
+
+target_link_libraries(demo_vis
+        ${Franka_LIBRARIES}
+        ${catkin_LIBRARIES}
+        )
+
+target_include_directories(demo_vis SYSTEM PUBLIC
         ${Mujoco_INCLUDE_DIRS}
         ${YAML_INCLUDE_DIRS}
         ${PROJECT_INCLUDE_DIR}
         ${Franka_INCLUDE_DIRS}
         ${catkin_INCLUDE_DIRS}
-)
+        )
 
-#target_link_libraries(${PROJECT_NAME} Eigen3::Eigen ${LIB_MUJOCO} -lglfw ${GLFW} libGL.so libglew.so GL ${YAML_CPP_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} Eigen3::Eigen ${LIB_MUJOCO} -lglfw libGL.so GL ${YAML_CPP_LIBRARIES})
 
-#######################################################################################################
-##                              iLQR Scripts for real robot       
-#######################################################################################################
-
-#add_executable(iLQR_MuJoCo_realRobot
-#  # src/iLQR/Utility/stdInclude/stdInclude.h
-#  src/iLQR/Utility/MujocoController/MujocoController.cpp src/iLQR/Utility/MujocoController/MujocoController.h
-#  src/iLQR/Utility/MujocoController/MujocoUI.cpp src/iLQR/Utility/MujocoController/MujocoUI.h
-#  src/iLQR/modelTranslator/modelTranslator.cpp src/iLQR/modelTranslator/modelTranslator.h
-#  src/iLQR/iLQR/iLQR_dataCentric.cpp src/iLQR/iLQR/iLQR_dataCentric.h
-#  src/MuJoCo_node.cpp
-#)
-#
-#add_dependencies(iLQR_MuJoCo_realRobot
-# ${catkin_EXPORTED_TARGETS}
-#)
-#
-#target_link_libraries(iLQR_MuJoCo_realRobot
-# ${Franka_LIBRARIES}
-# ${catkin_LIBRARIES}
-#)
-
-#target_link_libraries(iLQR_MuJoCo_realRobot Eigen3::Eigen ${LIB_MUJOCO} ${GLFW} libGL.so libglew.so GL)
-#
-#target_include_directories(iLQR_MuJoCo_realRobot SYSTEM PUBLIC
-#  ${Franka_INCLUDE_DIRS}
-#  ${catkin_INCLUDE_DIRS}
-#)
-#
-#target_include_directories(iLQR_MuJoCo_realRobot PUBLIC
-# include
-#)
-
-
-
-
-
+include_directories(
+        include
+        ${catkin_INCLUDE_DIRS}
+        ${catkin_WORKSPACE}/devel/include
+        ${MUJOCO_DIR}/include
+)
 
 
 ## Specify additional locations of header files

@@ -1,4 +1,52 @@
-#include "MuJoCo_node.h"
+#include "MuJoCoStatusUpdater.h"
+
+int main(int argc, char **argv){
+    std::vector<std::string> tracked_objects = {"HotChocolate"};
+    // Create an instance of MuJocoStatusUpdater
+    MuJoCoStateUpdater mujoco_state_updater(argc, argv, tracked_objects);
+
+    while(ros::ok()){
+        scene_state world = mujoco_state_updater.ReturnScene();
+
+        // create message
+        MuJoCo_StateUpdater::Scene scene_msg;
+
+        // fill in message
+        for(auto robot : world.robots){
+            MuJoCo_StateUpdater::Robot robot_msg;
+            robot_msg.name = robot.name;
+
+            for(int i = 0; i < NUM_JOINTS; i++){
+                robot_msg.joint_positions.push_back(robot.joint_positions[i]);
+                robot_msg.joint_velocities.push_back(robot.joint_velocities[i]);
+
+            }
+            scene_msg.robots.push_back(robot_msg);
+        }
+
+        for(auto object : world.objects){
+            MuJoCo_StateUpdater::RigidBody object_msg;
+            object_msg.name = object.name;
+
+            // Pose is x, y, z, qx, qy, qz, w
+            object_msg.pose = {object.positions[0], object.positions[1], object.positions[2],
+                               object.quaternion[0], object.quaternion[1], object.quaternion[2], object.quaternion[3]};
+
+            // Velocity is x, y, z, wx, wy, wz
+            object_msg.velocity = {object.linear_velocities[0], object.linear_velocities[1], object.linear_velocities[2],
+                                   object.angular_velocities[0], object.angular_velocities[1], object.angular_velocities[2]};
+
+            scene_msg.objects.push_back(object_msg);
+        }
+
+        // Publish message
+        mujoco_state_updater.scene_pub.publish(scene_msg);
+
+//        scene_msg.robots = world.robots;
+    }
+
+    // Spin up
+}
 
 MuJoCoStateUpdater::MuJoCoStateUpdater(int argc, char **argv, std::vector<std::string> optitrack_topic_names){
 
@@ -8,7 +56,7 @@ MuJoCoStateUpdater::MuJoCoStateUpdater(int argc, char **argv, std::vector<std::s
     listener = new tf::TransformListener();
 
     joint_states_sub = n->subscribe("joint_states", 10, &MuJoCoStateUpdater::JointStates_callback, this);
-    franka_states_sub = n->subscribe("/franka_state_controller/franka_states", 10, &MuJoCoStateUpdater::FrankaStates_callback, this);
+//    franka_states_sub = n->subscribe("/franka_state_controller/franka_states", 10, &MuJoCoStateUpdater::FrankaStates_callback, this);
     robot_base_sub = n->subscribe("/mocap/rigid_bodies/pandaRobot/pose", 10, &MuJoCoStateUpdater::RobotBasePose_callback, this);
 
     for(int i = 0; i < optitrack_topic_names.size(); i++){
@@ -17,17 +65,19 @@ MuJoCoStateUpdater::MuJoCoStateUpdater(int argc, char **argv, std::vector<std::s
         optitrack_sub.push_back(n->subscribe<geometry_msgs::PoseStamped>(topic, 1, callback));
     }
 
+    // Create scene message publisher
+    scene_pub = n->advertise<MuJoCo_StateUpdater::Scene>("scene_state", 10);
+
     number_of_objects = optitrack_topic_names.size();
     optitrack_objects = optitrack_topic_names;
 
-    torque_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_group_effort_controller/command", 1));
-    position_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_group_position_controller/command", 1));
-    velocity_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_velocity_controller/command", 1));
+//    torque_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_group_effort_controller/command", 1));
+//    position_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_group_position_controller/command", 1));
+//    velocity_pub = new ros::Publisher(n->advertise<std_msgs::Float64MultiArray>("/effort_velocity_controller/command", 1));
 
     for(int i = 0; i < optitrack_topic_names.size(); i++){
         objectTrackingList.push_back(object_tracking());
-        objectPoseList.push_back(m_pose_quat());
-        objectPosOffsetList.push_back(m_point());
+        objectPoseList.push_back(pose());
 
         objectTrackingList[i].parent_id = "/panda_link0";
         objectTrackingList[i].target_id = "/ar_marker_3";
@@ -55,19 +105,21 @@ int MuJoCoStateUpdater::GetObjectID(std::string item_name){
 // order of poses is {x, y, z, w, wx, wy, wz}
 void MuJoCoStateUpdater::OptiTrack_callback(const geometry_msgs::PoseStamped::ConstPtr &msg,
                                             const std::string &topic_name) {
-    m_pose objectPose;
+    pose objectPose;
     int objectId = GetObjectID(topic_name);
+
+//    std::cout << "Robot base: " << robotBase(0) << " " << robotBase(1) << " " << robotBase(2) << "\n";
 
     // For coordinate frames in mujoco, offset the object coordinates by the base frame of robot
     // as that is origin in mujoco
-    objectPoseList[objectId](0) = msg->pose.position.x - robotBase(0);
-    objectPoseList[objectId](1) = msg->pose.position.y - robotBase(1);
-    objectPoseList[objectId](2) = msg->pose.position.z - robotBase(2);
+    objectPoseList[objectId].position.x = msg->pose.position.x - robotBase.x;
+    objectPoseList[objectId].position.y = msg->pose.position.y - robotBase.y;
+    objectPoseList[objectId].position.z = msg->pose.position.z - robotBase.z;
 
-    objectPoseList[objectId](3) = msg->pose.orientation.w;
-    objectPoseList[objectId](4) = msg->pose.orientation.x;
-    objectPoseList[objectId](5) = msg->pose.orientation.y;
-    objectPoseList[objectId](6) = msg->pose.orientation.z;
+    objectPoseList[objectId].quaternion[0] = msg->pose.orientation.w;
+    objectPoseList[objectId].quaternion[1] = msg->pose.orientation.x;
+    objectPoseList[objectId].quaternion[2] = msg->pose.orientation.y;
+    objectPoseList[objectId].quaternion[3] = msg->pose.orientation.z;
 
     optitrack_objects_found[objectId] = true;
 }
@@ -82,25 +134,26 @@ void MuJoCoStateUpdater::JointStates_callback(const sensor_msgs::JointState &msg
     // TODO - make this dependant on size of msg?
     for(int i = 0; i < NUM_JOINTS; i++){
         joint_positions[i] = msg.position[i];
+        joint_velocities[i] = msg.velocity[i];
     }
 }
 
-void MuJoCoStateUpdater::FrankaStates_callback(const franka_msgs::FrankaState &msg){
-
-    for(int i = 0; i < NUM_JOINTS; i++){
-        joint_velocities[i] = msg.dq[i];
-    }
-}
+//void MuJoCoStateUpdater::FrankaStates_callback(const franka_msgs::FrankaState &msg){
+//
+//    for(int i = 0; i < NUM_JOINTS; i++){
+//        joint_velocities[i] = msg.dq[i];
+//    }
+//}
 
 void MuJoCoStateUpdater::RobotBasePose_callback(const geometry_msgs::PoseStamped &msg){
-    robotBase(0) = msg.pose.position.x;
-    robotBase(1) = msg.pose.position.y;
-    robotBase(2) = msg.pose.position.z;
-
-    robotBase(3) = msg.pose.orientation.w;
-    robotBase(4) = msg.pose.orientation.x;
-    robotBase(5) = msg.pose.orientation.y;
-    robotBase(6) = msg.pose.orientation.z;
+    robotBase.x = msg.pose.position.x;
+    robotBase.y = msg.pose.position.y;
+    robotBase.z = msg.pose.position.z;
+//
+//    robotBase(3) = msg.pose.orientation.w;
+//    robotBase(4) = msg.pose.orientation.x;
+//    robotBase(5) = msg.pose.orientation.y;
+//    robotBase(6) = msg.pose.orientation.z;
 }
 
 scene_state MuJoCoStateUpdater::ReturnScene(){
@@ -129,7 +182,7 @@ scene_state MuJoCoStateUpdater::ReturnScene(){
     return world;
 }
 
-// TODO - should probably add abaility for multiple robots, which should be specified by constructor call
+// TODO - should probably add adaptibility for multiple robots, which should be specified by constructor call
 std::vector<robot_real> MuJoCoStateUpdater::ReturnRobotState() {
 
     std::vector<robot_real> robots;
@@ -147,7 +200,7 @@ std::vector<robot_real> MuJoCoStateUpdater::ReturnRobotState() {
         else{
             robots[0].joint_positions.push_back(joint_positions[i]);
         }
-
+        robots[0].joint_velocities.push_back(joint_velocities[i]);
     }
 
     return robots;
@@ -156,38 +209,34 @@ std::vector<robot_real> MuJoCoStateUpdater::ReturnRobotState() {
 std::vector<object_real> MuJoCoStateUpdater::ReturnObjectsState(){
     tf::StampedTransform transform;
     std::vector<object_real> objects;
-    if(OPTITRACK){
-        for(int i = 0; i < number_of_objects; i++){
-            objects.push_back(object_real());
-            objects[i].name = optitrack_objects[i];
-            // x, y, z
-            objects[i].positions[0] = objectPoseList[i](0);
-            objects[i].positions[1] = -objectPoseList[i](2);
-            objects[i].positions[2] = objectPoseList[i](1);
 
-            // This seems so random, Optitrack and mujoco conversion is weird...
-            // x, y, z, w
-            objects[i].quaternion[0] = objectPoseList[i](4);
-            objects[i].quaternion[1] = -objectPoseList[i](6);
-            objects[i].quaternion[2] = objectPoseList[i](5);
-            objects[i].quaternion[3] = objectPoseList[i](3);
 
-//            int itemId = mj_name2id(m, mjOBJ_BODY, objectTrackingList[i].mujoco_name.c_str());
-//            m_point bodyPoint;
-//            bodyPoint(0) = objectPoseList[i](0); //  + objectPosOffsetList[i](0);    // mujoco x
-//            bodyPoint(1) = -objectPoseList[i](2); // + objectPosOffsetList[0](2);    // mujoco y
-//            bodyPoint(2) = objectPoseList[i](1); //  + objectPosOffsetList[0](1);    // mujoco z (up/down)
-//            set_BodyPosition(m, d, itemId, bodyPoint);
-//
-//            Quaternionf q;
-//            q.w() = objectPoseList[i](3);
-//            q.x() = objectPoseList[i](4);
-//            q.y() = -objectPoseList[i](6);
-//            q.z() = objectPoseList[i](5);
-//            setBodyQuat(m, d, itemId, q);
-        }
+    for(int i = 0; i < number_of_objects; i++){
+        objects.push_back(object_real());
+        objects[i].name = optitrack_objects[i];
+        // x, y, z (THIS LOOKS WEIRD, THERE IS A REASON FOR THIS WEIRD SWAPPING)
+        // Swapping between optitrack frame and MuJoCo frame I believe....
+        objects[i].positions[0] = objectPoseList[i].position.x;
+        objects[i].positions[1] = -objectPoseList[i].position.z;
+        objects[i].positions[2] = objectPoseList[i].position.y;
+
+        objects[i].linear_velocities[0] = 0.0;
+        objects[i].linear_velocities[1] = 0.0;
+        objects[i].linear_velocities[2] = 0.0;
+
+        // This seems so random, Optitrack and mujoco conversion is weird...
+        // x, y, z, w  (THIS LOOKS WEIRD, THERE IS A REASON FOR THIS WEIRD SWAPPING)
+        // Swapping between optitrack frame and MuJoCo frame I believe....
+        objects[i].quaternion[0] = objectPoseList[i].quaternion[1];
+        objects[i].quaternion[1] = -objectPoseList[i].quaternion[3];
+        objects[i].quaternion[2] = objectPoseList[i].quaternion[2];
+        objects[i].quaternion[3] = objectPoseList[i].quaternion[0];
+
+        objects[i].angular_velocities[0] = 0.0;
+        objects[i].angular_velocities[1] = 0.0;
+        objects[i].angular_velocities[2] = 0.0;
     }
-//    else {
+
 //        for (int i = 0; i < number_of_objects; i++) {
 //            try {
 //                listener->lookupTransform(objectTrackingList[i].parent_id, objectTrackingList[i].target_id,
@@ -221,36 +270,36 @@ std::vector<object_real> MuJoCoStateUpdater::ReturnObjectsState(){
 }
 
 // TODO - check loaded controllers, only load controller if required.
-bool MuJoCoStateUpdater::SwitchController(std::string controllerName){
-    ros::ServiceClient load_controller = n->serviceClient<controller_manager_msgs::LoadController>("/controller_manager/load_controller");
-
-    controller_manager_msgs::LoadController load_controller_req;
-    load_controller_req.request.name = controllerName;
-    load_controller.call(load_controller_req);
-
-    ros::ServiceClient switch_controller = n->serviceClient<controller_manager_msgs::SwitchController>("/controller_manager/switch_controller");
-
-    std::vector<std::string> start_controller;
-    start_controller.push_back(controllerName);
-    std::vector<std::string> stop_controller;
-    stop_controller.push_back("position_joint_trajectory_controller");
-    controller_manager_msgs::SwitchController switch_controller_req;
-    switch_controller_req.request.start_controllers = start_controller;
-    switch_controller_req.request.stop_controllers = stop_controller;
-    switch_controller_req.request.strictness = 1;
-    switch_controller_req.request.start_asap = false;
-    ros::service::waitForService("/controller_manager/switch_controller", ros::Duration(5));
-    switch_controller.call(switch_controller_req);
-    if (switch_controller_req.response.ok){
-        ROS_INFO_STREAM("Controller switch correctly");
-    }
-    else{
-        ROS_ERROR_STREAM("Error occured trying to switch controller");
-        return 0;
-    }
-
-    return switch_controller_req.response.ok;
-}
+//bool MuJoCoStateUpdater::SwitchController(std::string controllerName){
+//    ros::ServiceClient load_controller = n->serviceClient<controller_manager_msgs::LoadController>("/controller_manager/load_controller");
+//
+//    controller_manager_msgs::LoadController load_controller_req;
+//    load_controller_req.request.name = controllerName;
+//    load_controller.call(load_controller_req);
+//
+//    ros::ServiceClient switch_controller = n->serviceClient<controller_manager_msgs::SwitchController>("/controller_manager/switch_controller");
+//
+//    std::vector<std::string> start_controller;
+//    start_controller.push_back(controllerName);
+//    std::vector<std::string> stop_controller;
+//    stop_controller.push_back("position_joint_trajectory_controller");
+//    controller_manager_msgs::SwitchController switch_controller_req;
+//    switch_controller_req.request.start_controllers = start_controller;
+//    switch_controller_req.request.stop_controllers = stop_controller;
+//    switch_controller_req.request.strictness = 1;
+//    switch_controller_req.request.start_asap = false;
+//    ros::service::waitForService("/controller_manager/switch_controller", ros::Duration(5));
+//    switch_controller.call(switch_controller_req);
+//    if (switch_controller_req.response.ok){
+//        ROS_INFO_STREAM("Controller switch correctly");
+//    }
+//    else{
+//        ROS_ERROR_STREAM("Error occured trying to switch controller");
+//        return 0;
+//    }
+//
+//    return switch_controller_req.response.ok;
+//}
 
 //void MuJoCoStateUpdater::sendTorquesToRealRobot(double torques[]){
 //    std_msgs::Float64MultiArray  desired_torques;
