@@ -215,7 +215,7 @@ target_include_directories(demo_vis SYSTEM PUBLIC
         ${catkin_INCLUDE_DIRS}
         )
 
-target_link_libraries(${PROJECT_NAME} Eigen3::Eigen ${LIB_MUJOCO} -lglfw libGL.so GL ${YAML_CPP_LIBRARIES})
+target_link_libraries(demo_vis ${LIB_MUJOCO} -lglfw libGL.so GL ${YAML_CPP_LIBRARIES})
 
 include_directories(
         include

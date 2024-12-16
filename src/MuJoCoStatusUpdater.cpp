@@ -41,11 +41,7 @@ int main(int argc, char **argv){
 
         // Publish message
         mujoco_state_updater.scene_pub.publish(scene_msg);
-
-//        scene_msg.robots = world.robots;
     }
-
-    // Spin up
 }
 
 MuJoCoStateUpdater::MuJoCoStateUpdater(int argc, char **argv, std::vector<std::string> optitrack_topic_names){
