@@ -1,9 +1,9 @@
 #include "MuJoCoStatusUpdater.h"
 
 int main(int argc, char **argv){
-    std::vector<std::string> tracked_objects = {"HotChocolate"};
+
     // Create an instance of MuJocoStatusUpdater
-    MuJoCoStateUpdater mujoco_state_updater(argc, argv, tracked_objects);
+    MuJoCoStateUpdater mujoco_state_updater(argc, argv);
 
     while(ros::ok()){
         scene_state world = mujoco_state_updater.ReturnScene();
@@ -44,36 +44,47 @@ int main(int argc, char **argv){
     }
 }
 
-MuJoCoStateUpdater::MuJoCoStateUpdater(int argc, char **argv, std::vector<std::string> optitrack_topic_names){
+MuJoCoStateUpdater::MuJoCoStateUpdater(int argc, char **argv){
 
     ros::init(argc, argv, "MuJoCo_node");
 
     n = new ros::NodeHandle();
     listener = new tf::TransformListener();
 
+    // Get the list of objects to track from ROS param server
+    std::vector<std::string> tracked_objects;
+    if (n->getParam("tracked_objects", tracked_objects)) {
+        ROS_INFO("Loaded tracked objects vector:");
+        for (const auto& str : tracked_objects) {
+            ROS_INFO("  - %s", str.c_str());
+        }
+    } else {
+        ROS_WARN("Failed to get parameter 'tracked_objects'");
+    }
+
     joint_states_sub = n->subscribe("joint_states", 10, &MuJoCoStateUpdater::JointStates_callback, this);
 //    franka_states_sub = n->subscribe("/franka_state_controller/franka_states", 10, &MuJoCoStateUpdater::FrankaStates_callback, this);
     robot_base_sub = n->subscribe("/mocap/rigid_bodies/pandaRobot/pose", 10, &MuJoCoStateUpdater::RobotBasePose_callback, this);
 
-    for(int i = 0; i < optitrack_topic_names.size(); i++){
-        auto callback = std::bind(&MuJoCoStateUpdater::OptiTrack_callback, this, std::placeholders::_1, optitrack_topic_names[i]);
-        std::string topic = "/mocap/rigid_bodies/" + optitrack_topic_names[i] + "/pose";
+    for(int i = 0; i < tracked_objects.size(); i++){
+        auto callback = std::bind(&MuJoCoStateUpdater::OptiTrack_callback, this, std::placeholders::_1, tracked_objects[i]);
+        std::string topic = "/mocap/rigid_bodies/" + tracked_objects[i] + "/pose";
         optitrack_sub.push_back(n->subscribe<geometry_msgs::PoseStamped>(topic, 1, callback));
     }
 
     // Create scene message publisher
     scene_pub = n->advertise<MuJoCo_StateUpdater::Scene>("scene_state", 10);
 
-    number_of_objects = optitrack_topic_names.size();
-    optitrack_objects = optitrack_topic_names;
+    number_of_objects = tracked_objects.size();
+    optitrack_objects = tracked_objects;
 
-    for(int i = 0; i < optitrack_topic_names.size(); i++){
+    for(int i = 0; i < tracked_objects.size(); i++){
         objectTrackingList.push_back(object_tracking());
         objectPoseList.push_back(pose());
 
         objectTrackingList[i].parent_id = "/panda_link0";
         objectTrackingList[i].target_id = "/ar_marker_3";
-        objectTrackingList[i].mujoco_name = optitrack_topic_names[i];
+        objectTrackingList[i].mujoco_name = tracked_objects[i];
         optitrack_objects_found.push_back(false);
     }
 

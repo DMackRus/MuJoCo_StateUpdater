@@ -66,7 +66,7 @@ struct scene_state{
 class MuJoCoStateUpdater{
     public:
         // Constructor
-        MuJoCoStateUpdater(int argc, char **argv, std::vector<std::string> optitrack_topic_names);
+        MuJoCoStateUpdater(int argc, char **argv);
         ~MuJoCoStateUpdater();
 
         // -----------------------------------------------------------------------------------

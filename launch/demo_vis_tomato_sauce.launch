@@ -1,4 +1,6 @@
 <launch>
+    <rosparam param="tracked_objects">['Tomato_Sauce']</rosparam>
+
     <!-- Launch the first node -->
     <node
         pkg="MuJoCo_StateUpdater"
@@ -14,4 +16,6 @@
         name="visualizer"
         output="screen">
     </node>
+
+
 </launch>

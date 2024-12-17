@@ -180,13 +180,23 @@ int main(int argc, char **argv){
     ros::NodeHandle nh;
     ros::Subscriber scene_sub = nh.subscribe("scene_state", 10, SceneState_callback);
 
-    // TODO - Programmatically create our scene representation
+    // TODO - Currently assume we always only have 1 robot which has 7 joints
     world.robots.push_back(robot_real());
     for(int i = 0; i < 7; i++){
         world.robots[0].joint_positions.push_back(0.0);
         world.robots[0].joint_velocities.push_back(0.0);
     }
-    world.objects.push_back(object_real());
+
+    // Get the list of tracked objects from ROS param server
+    std::vector<std::string> tracked_objects;
+    if (nh.getParam("tracked_objects", tracked_objects)) {
+    } else {
+        ROS_WARN("Failed to get parameter 'tracked_objects'");
+    }
+
+    for(auto object_name : tracked_objects){
+        world.objects.push_back(object_real());
+    }
 
     // Main loop
     ros::Rate rate(30); // 30 Hz loop rate
