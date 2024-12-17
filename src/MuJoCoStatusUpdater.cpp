@@ -24,22 +24,27 @@ int main(int argc, char **argv){
             scene_msg.robots.push_back(robot_msg);
         }
 
-        for(auto object : world.objects){
+        // Iterate through dictionary keys for tracked objects
+        for (const auto& [key, value] : mujoco_state_updater.tracked_object_poses) {
             MuJoCo_StateUpdater::RigidBody object_msg;
-            object_msg.name = object.name;
+
+            object_msg.name = value.name;
 
             // Pose is x, y, z, qx, qy, qz, w
-            object_msg.pose = {object.positions[0], object.positions[1], object.positions[2],
-                               object.quaternion[0], object.quaternion[1], object.quaternion[2], object.quaternion[3]};
+            object_msg.pose = {value.positions[0], value.positions[1], value.positions[2],
+                               value.quaternion[0], value.quaternion[1], value.quaternion[2], value.quaternion[3]};
 
             // Velocity is x, y, z, wx, wy, wz
-            object_msg.velocity = {object.linear_velocities[0], object.linear_velocities[1], object.linear_velocities[2],
-                                   object.angular_velocities[0], object.angular_velocities[1], object.angular_velocities[2]};
+            object_msg.velocity = {value.linear_velocities[0], value.linear_velocities[1], value.linear_velocities[2],
+                                   value.angular_velocities[0], value.angular_velocities[1], value.angular_velocities[2]};
+
+            object_msg.confidence = value.confidence;
 
             scene_msg.objects.push_back(object_msg);
+
         }
 
-        // Publish message
+        // Publish scene message
         mujoco_state_updater.scene_pub.publish(scene_msg);
     }
 }
@@ -49,7 +54,6 @@ MuJoCoStateUpdater::MuJoCoStateUpdater(int argc, char **argv){
     ros::init(argc, argv, "MuJoCo_node");
 
     n = new ros::NodeHandle();
-    listener = new tf::TransformListener();
 
     // Get the list of objects to track from ROS param server
     std::vector<std::string> tracked_objects;
@@ -63,7 +67,6 @@ MuJoCoStateUpdater::MuJoCoStateUpdater(int argc, char **argv){
     }
 
     joint_states_sub = n->subscribe("joint_states", 10, &MuJoCoStateUpdater::JointStates_callback, this);
-//    franka_states_sub = n->subscribe("/franka_state_controller/franka_states", 10, &MuJoCoStateUpdater::FrankaStates_callback, this);
     robot_base_sub = n->subscribe("/mocap/rigid_bodies/pandaRobot/pose", 10, &MuJoCoStateUpdater::RobotBasePose_callback, this);
 
     for(int i = 0; i < tracked_objects.size(); i++){
@@ -75,57 +78,52 @@ MuJoCoStateUpdater::MuJoCoStateUpdater(int argc, char **argv){
     // Create scene message publisher
     scene_pub = n->advertise<MuJoCo_StateUpdater::Scene>("scene_state", 10);
 
-    number_of_objects = tracked_objects.size();
     optitrack_objects = tracked_objects;
 
-    for(int i = 0; i < tracked_objects.size(); i++){
-        objectTrackingList.push_back(object_tracking());
-        objectPoseList.push_back(pose());
+    for(auto & tracked_object : tracked_objects){
 
-        objectTrackingList[i].parent_id = "/panda_link0";
-        objectTrackingList[i].target_id = "/ar_marker_3";
-        objectTrackingList[i].mujoco_name = tracked_objects[i];
-        optitrack_objects_found.push_back(false);
+        tracked_object_poses[tracked_object] =
+                {tracked_object, 0, 0, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
+                 {0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, 0.0};
+
     }
-
-    object_callback_called = false;
-
-}
-
-int MuJoCoStateUpdater::GetObjectID(std::string item_name){
-    for(int i = 0; i < optitrack_objects.size(); i++){
-        if(item_name == optitrack_objects[i]){
-            return i;
-        }
-    }
-    // If object Id is not found, this will crash the program!
-    return -1;
 }
 
 // order of poses is {x, y, z, w, wx, wy, wz}
 void MuJoCoStateUpdater::OptiTrack_callback(const geometry_msgs::PoseStamped::ConstPtr &msg,
                                             const std::string &topic_name) {
-    int objectId = GetObjectID(topic_name);
+//    int objectId = GetObjectID(topic_name);
 
-//    std::cout << "Robot base: " << robotBase(0) << " " << robotBase(1) << " " << robotBase(2) << "\n";
+    tracked_object_poses[topic_name].name = topic_name;
 
     // For coordinate frames in mujoco, offset the object coordinates by the base frame of robot
     // as that is origin in mujoco
-    objectPoseList[objectId].position.x = msg->pose.position.x - robotBase.x;
-    objectPoseList[objectId].position.y = msg->pose.position.y - robotBase.y;
-    objectPoseList[objectId].position.z = msg->pose.position.z - robotBase.z;
+    // NOTE - THIS LOOKS WEIRD AND THAT IS BECAUSE IT IS. Trying to swap between real world optitrack frame
+    // and MuJoCo frame. Possiby this should not be done here and be done on the user side instead????
+    tracked_object_poses[topic_name].positions[0] = msg->pose.position.x - robotBase.x;
+    tracked_object_poses[topic_name].positions[1] = -(msg->pose.position.z - robotBase.z);
+    tracked_object_poses[topic_name].positions[2] = msg->pose.position.y - robotBase.y;
 
-    objectPoseList[objectId].quaternion[0] = msg->pose.orientation.w;
-    objectPoseList[objectId].quaternion[1] = msg->pose.orientation.x;
-    objectPoseList[objectId].quaternion[2] = msg->pose.orientation.y;
-    objectPoseList[objectId].quaternion[3] = msg->pose.orientation.z;
+    tracked_object_poses[topic_name].quaternion[0] = msg->pose.orientation.x;
+    tracked_object_poses[topic_name].quaternion[1] = -msg->pose.orientation.z;
+    tracked_object_poses[topic_name].quaternion[2] = msg->pose.orientation.y;
+    tracked_object_poses[topic_name].quaternion[3] = msg->pose.orientation.w;
 
-    optitrack_objects_found[objectId] = true;
+    // TODO - add velocity tracking
+    tracked_object_poses[topic_name].linear_velocities[0] = 0.0;
+    tracked_object_poses[topic_name].linear_velocities[1] = 0.0;
+    tracked_object_poses[topic_name].linear_velocities[2] = 0.0;
+
+    tracked_object_poses[topic_name].angular_velocities[0] = 0.0;
+    tracked_object_poses[topic_name].angular_velocities[1] = 0.0;
+    tracked_object_poses[topic_name].angular_velocities[2] = 0.0;
+
+    // With optitrack we currently assume we are 100% confident in the current reading
+    tracked_object_poses[topic_name].confidence = 1.0;
 }
 
 MuJoCoStateUpdater::~MuJoCoStateUpdater(){
     delete n;
-    delete listener;
 }
 
 void MuJoCoStateUpdater::JointStates_callback(const sensor_msgs::JointState &msg){
@@ -136,13 +134,6 @@ void MuJoCoStateUpdater::JointStates_callback(const sensor_msgs::JointState &msg
         joint_velocities[i] = msg.velocity[i];
     }
 }
-
-//void MuJoCoStateUpdater::FrankaStates_callback(const franka_msgs::FrankaState &msg){
-//
-//    for(int i = 0; i < NUM_JOINTS; i++){
-//        joint_velocities[i] = msg.dq[i];
-//    }
-//}
 
 void MuJoCoStateUpdater::RobotBasePose_callback(const geometry_msgs::PoseStamped &msg){
     robotBase.x = msg.pose.position.x;
@@ -160,28 +151,12 @@ scene_state MuJoCoStateUpdater::ReturnScene(){
 
     ros::spinOnce();
     std::vector<robot_real> robots = ReturnRobotState();
-    std::vector<object_real> objects = ReturnObjectsState();
-
     world.robots = robots;
-    world.objects = objects;
-
-    // Setting up a callback flag so you can pause execution until all objects found
-    if(!object_callback_called){
-        bool allobjectsFound = true;
-        for(int i = 0; i < optitrack_objects_found.size(); i++){
-            if(!optitrack_objects_found[i]){
-                allobjectsFound = false;
-            }
-        }
-        if(allobjectsFound){
-            object_callback_called = true;
-        }
-    }
 
     return world;
 }
 
-// TODO - should probably add adaptibility for multiple robots, which should be specified by constructor call
+// TODO - should probably add adaptibility for multiple robots, specified by ros param server
 std::vector<robot_real> MuJoCoStateUpdater::ReturnRobotState() {
 
     std::vector<robot_real> robots;
@@ -196,66 +171,4 @@ std::vector<robot_real> MuJoCoStateUpdater::ReturnRobotState() {
     }
 
     return robots;
-}
-
-std::vector<object_real> MuJoCoStateUpdater::ReturnObjectsState(){
-    tf::StampedTransform transform;
-    std::vector<object_real> objects;
-
-    for(int i = 0; i < number_of_objects; i++){
-        objects.push_back(object_real());
-        objects[i].name = optitrack_objects[i];
-        // x, y, z (THIS LOOKS WEIRD, THERE IS A REASON FOR THIS WEIRD SWAPPING)
-        // Swapping between optitrack frame and MuJoCo frame I believe....
-        objects[i].positions[0] = objectPoseList[i].position.x;
-        objects[i].positions[1] = -objectPoseList[i].position.z;
-        objects[i].positions[2] = objectPoseList[i].position.y;
-
-        objects[i].linear_velocities[0] = 0.0;
-        objects[i].linear_velocities[1] = 0.0;
-        objects[i].linear_velocities[2] = 0.0;
-
-        // This seems so random, Optitrack and mujoco conversion is weird...
-        // x, y, z, w  (THIS LOOKS WEIRD, THERE IS A REASON FOR THIS WEIRD SWAPPING)
-        // Swapping between optitrack frame and MuJoCo frame I believe....
-        objects[i].quaternion[0] = objectPoseList[i].quaternion[1];
-        objects[i].quaternion[1] = -objectPoseList[i].quaternion[3];
-        objects[i].quaternion[2] = objectPoseList[i].quaternion[2];
-        objects[i].quaternion[3] = objectPoseList[i].quaternion[0];
-
-        objects[i].angular_velocities[0] = 0.0;
-        objects[i].angular_velocities[1] = 0.0;
-        objects[i].angular_velocities[2] = 0.0;
-    }
-
-//        for (int i = 0; i < number_of_objects; i++) {
-//            try {
-//                listener->lookupTransform(objectTrackingList[i].parent_id, objectTrackingList[i].target_id,
-//                                          ros::Time(0), transform);
-//
-//                int cheezit_id = mj_name2id(m, mjOBJ_BODY, objectTrackingList[i].mujoco_name.c_str());
-//
-//                m_point bodyPos;
-//                bodyPos(0) = transform.getOrigin().x();
-//                bodyPos(1) = transform.getOrigin().y();
-//                bodyPos(2) = transform.getOrigin().z();
-//                set_BodyPosition(m, d, cheezit_id, bodyPos);
-//
-//                float x = transform.getRotation().x();
-//                float y = transform.getRotation().y();
-//                float z = transform.getRotation().z();
-//                float w = transform.getRotation().w();
-//
-//                Quaternionf q = {w, x, y, z};
-//                setBodyQuat(m, d, cheezit_id, q);
-//
-//            }
-//            catch (tf::TransformException ex) {
-//                std::cout << " no ar marker 3 found" << std::endl;
-//                ROS_ERROR("%s", ex.what());
-//            }
-//        }
-//    }
-
-    return objects;
 }

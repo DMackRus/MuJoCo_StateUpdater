@@ -36,11 +36,11 @@ struct pose{
     double quaternion[4]; // x, y, z, w
 };
 
-struct object_tracking{
-    std::string parent_id;
-    std::string target_id;
-    std::string mujoco_name;
-};
+//struct object_tracking{
+//    std::string parent_id;
+//    std::string target_id;
+//    std::string mujoco_name;
+//};
 
 struct robot_real{
     std::string name;
@@ -50,6 +50,8 @@ struct robot_real{
 
 struct object_real{
     std::string name;
+    long last_update_secs;
+    long last_update_nsecs;
     double positions[3];
     double linear_velocities[3];
     // x, y ,z, w
@@ -90,29 +92,20 @@ class MuJoCoStateUpdater{
         // Return a struct representing the state of the scene
         scene_state ReturnScene();
 
-        bool object_callback_called;
+        std::map<std::string, object_real> tracked_object_poses;
 
     private:
-
-        // Gets the ID of an opitrack tracked object by string name
-        int GetObjectID(std::string item_name);
 
         // Updates the joint states of the robot
         std::vector<robot_real> ReturnRobotState();
         // Loops through all known objects in the scene and updates their position and rotation
         std::vector<object_real> ReturnObjectsState();
 
-        int number_of_objects;
         std::vector<std::string> optitrack_objects;
-        std::vector<bool> optitrack_objects_found;
-
-        std::vector<object_tracking> objectTrackingList;
-        std::vector<pose> objectPoseList;
 
         point robotBase;
 
         ros::NodeHandle *n;
-        tf::TransformListener *listener;
 
         // TODO - Why do we assume 7 here, should be programatic??
         double joint_positions[7] = {0, 0, 0, 0, 0, 0, 0};
