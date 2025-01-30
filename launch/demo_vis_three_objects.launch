@@ -1,0 +1,21 @@
+<launch>
+    <rosparam param="tracked_objects">['Tomato_Sauce','Hot_Chocolate','Tomato_Soup']</rosparam>
+
+    <!-- Launch the first node -->
+    <node
+        pkg="MuJoCo_StateUpdater"
+        type="MuJoCo_StateUpdater"
+        name="MuJoCo_StateUpdater"
+        output="screen">
+    </node>
+
+    <!-- Launch the second node -->
+    <node
+        pkg="MuJoCo_StateUpdater"
+        type="demo_vis"
+        name="visualizer"
+        output="screen">
+    </node>
+
+
+</launch>

@@ -70,7 +70,7 @@ void setupMujocoWorld(){
     char error[1000];
 
     // TODO - this is hardcoded for now
-    model = mj_loadXML("/home/david/mujoco_models/Franka_panda/scene.xml", NULL, error, 1000);
+    model = mj_loadXML("/home/david/catkin_ws/src/Panda_MPC/TrajOptKP/mujoco_models/Franka_panda/scene.xml", NULL, error, 1000);
 
     if(!model) {
         std::cout << "model xml Error" << std::endl;
