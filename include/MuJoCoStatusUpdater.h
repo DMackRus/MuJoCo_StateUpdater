@@ -35,6 +35,7 @@ struct robot_real{
     std::string name;
     std::vector<double> joint_positions;
     std::vector<double> joint_velocities;
+    std::vector<double> joint_efforts;
 };
 
 struct object_real{

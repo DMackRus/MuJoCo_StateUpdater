@@ -5,7 +5,7 @@ int main(int argc, char **argv){
     // Create an instance of MuJocoStatusUpdater
     MuJoCoStateUpdater mujoco_state_updater(argc, argv);
 
-    ros::Rate rate(10); // Loop rate in Hz
+    ros::Rate rate(10000); // Loop rate in Hz
     while(ros::ok()){
         ros::spinOnce();
         // create message
@@ -19,7 +19,7 @@ int main(int argc, char **argv){
             for(int i = 0; i < NUM_JOINTS; i++){
                 robot_msg.joint_positions.push_back(robot.joint_positions[i]);
                 robot_msg.joint_velocities.push_back(robot.joint_velocities[i]);
-
+                robot_msg.joint_efforts.push_back(robot.joint_efforts[i]);
             }
             scene_msg.robots.push_back(robot_msg);
         }
@@ -96,6 +96,7 @@ MuJoCoStateUpdater::MuJoCoStateUpdater(int argc, char **argv){
     for(int i = 0; i < NUM_JOINTS; i++){
         robots[0].joint_positions.push_back(0.0);
         robots[0].joint_velocities.push_back(0.0);
+        robots[0].joint_efforts.push_back(0.0);
     }
 
     // Create scene message publisher
@@ -174,6 +175,7 @@ void MuJoCoStateUpdater::JointStates_callback(const sensor_msgs::JointState &msg
     for(int i = 0; i < NUM_JOINTS; i++){
         robots[0].joint_positions[i] = msg.position[i];
         robots[0].joint_velocities[i] = msg.velocity[i];
+        robots[0].joint_efforts[i] = msg.effort[i];
     }
 }
 
